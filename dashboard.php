@@ -1,15 +1,59 @@
 <?php
-session_start();
+include("conexion.php");
 
-if(!isset($_SESSION['usuario'])){
-header("Location: login.php");
-}
+$ventas_dia = mysqli_query($conexion,"
+SELECT SUM(total) as total 
+FROM ventas 
+WHERE DATE(fecha)=CURDATE()
+");
+
+$vd = mysqli_fetch_array($ventas_dia);
+
+$productos = mysqli_query($conexion,"
+SELECT COUNT(*) as total FROM productos
+");
+
+$tp = mysqli_fetch_array($productos);
 ?>
 
-<h1>Sistema AMATISTA SGI</h1>
+<h1>Dashboard AMATISTA SGI</h1>
 
-Bienvenido: <?php echo $_SESSION['usuario']; ?>
+<div>
 
-<br><br>
+<h3>Ventas del día</h3>
+$ <?php echo $vd['total']; ?>
 
-<a href="logout.php">Cerrar sesión</a>
+</div>
+
+<div>
+
+<h3>Total productos</h3>
+<?php echo $tp['total']; ?>
+
+</div>
+
+<?php
+
+$stock = mysqli_query($conexion,"
+SELECT * FROM productos
+WHERE stock <= 5
+");
+
+?>
+
+<h3>Productos con stock bajo</h3>
+
+<ul>
+
+<?php while($s=mysqli_fetch_array($stock)){ ?>
+
+<li>
+
+<?php echo $s['nombre']; ?> 
+(stock: <?php echo $s['stock']; ?>)
+
+</li>
+
+<?php } ?>
+
+</ul>
