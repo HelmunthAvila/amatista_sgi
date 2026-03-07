@@ -1,28 +1,43 @@
 <?php
+session_start();
 include("../../conexion.php");
 
-$id_producto = $_POST['producto'];
-$cantidad = $_POST['cantidad'];
+$total = 0;
 
-$producto = mysqli_query($conexion,"SELECT * FROM productos WHERE id=$id_producto");
+foreach($_SESSION['carrito'] as $item){
 
-$p = mysqli_fetch_array($producto);
+$total += $item['precio'] * $item['cantidad'];
 
-$precio = $p['precio'];
+}
 
-$total = $precio * $cantidad;
-
-mysqli_query($conexion,"INSERT INTO ventas(fecha,total) VALUES(NOW(),'$total')");
+mysqli_query($conexion,"
+INSERT INTO ventas(fecha,total)
+VALUES(NOW(),'$total')
+");
 
 $id_venta = mysqli_insert_id($conexion);
 
-mysqli_query($conexion,"INSERT INTO detalle_venta(id_venta,id_producto,cantidad,precio)
-VALUES('$id_venta','$id_producto','$cantidad','$precio')");
+foreach($_SESSION['carrito'] as $item){
 
-mysqli_query($conexion,"UPDATE productos 
+$id_producto = $item['id'];
+$cantidad = $item['cantidad'];
+$precio = $item['precio'];
+
+mysqli_query($conexion,"
+INSERT INTO detalle_venta
+(id_venta,id_producto,cantidad,precio)
+VALUES
+('$id_venta','$id_producto','$cantidad','$precio')
+");
+
+mysqli_query($conexion,"
+UPDATE productos
 SET stock = stock - $cantidad
-WHERE id=$id_producto");
+WHERE id=$id_producto
+");
 
-header("Location:ticket.php?id=$id_venta");
+}
 
-?>
+unset($_SESSION['carrito']);
+
+header("Location:pos.php");
