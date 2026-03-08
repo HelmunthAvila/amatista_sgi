@@ -112,7 +112,7 @@ if (!isset($_SESSION['usuario'])) {
 <nav id="sidebar">
     <div class="logo-container">
         <h4 class="fw-bold mb-0 text-white">
-            <i class="bi bi-gem me-2"></i>Amatista SGI
+            <i class=""></i>Amatista SGI
         </h4>
     </div>
 
