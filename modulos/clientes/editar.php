@@ -1,7 +1,11 @@
 <?php
-// 1. Inclusión de archivos base con rutas para subcarpetas
+// 1. Inclusión de archivos base y recuperación de ID
 include("../../conexion.php");
 include("../../includes/header.php");
+
+$id = $_GET['id'];
+$query = mysqli_query($conexion, "SELECT * FROM clientes WHERE id = $id");
+$c = mysqli_fetch_assoc($query);
 ?>
 
 <div class="container-fluid">
@@ -9,21 +13,22 @@ include("../../includes/header.php");
         <a href="listar.php" class="btn btn-link text-decoration-none text-muted p-0 mb-2">
             <i class="bi bi-arrow-left me-1"></i> Volver al listado
         </a>
-        <h2 class="fw-bold text-dark">Registrar Nuevo Cliente</h2>
-        <p class="text-muted small">Complete los campos para dar de alta un cliente en el sistema.</p>
+        <h2 class="fw-bold text-dark">Editar Información del Cliente</h2>
+        <p class="text-muted small">Modifique los campos necesarios para actualizar al cliente: <strong><?= $c['nombre'] ?></strong></p>
     </div>
 
     <div class="row">
         <div class="col-xl-5 col-lg-7">
             <div class="card border-0 shadow-sm rounded-4 p-4">
-                <form action="guardar.php" method="POST">
+                <form action="actualizar.php" method="POST">
+                    <input type="hidden" name="id" value="<?= $c['id'] ?>">
                     
                     <div class="mb-3">
                         <label class="form-label fw-bold small text-uppercase text-muted">Nombre Completo</label>
                         <div class="input-group">
                             <span class="input-group-text bg-light border-0"><i class="bi bi-person text-primary"></i></span>
                             <input type="text" name="nombre" class="form-control form-control-lg bg-light border-0" 
-                                   placeholder="Nombre y apellido" required>
+                                   value="<?= $c['nombre'] ?>" required>
                         </div>
                     </div>
 
@@ -32,7 +37,7 @@ include("../../includes/header.php");
                         <div class="input-group">
                             <span class="input-group-text bg-light border-0"><i class="bi bi-telephone text-primary"></i></span>
                             <input type="text" name="telefono" class="form-control form-control-lg bg-light border-0" 
-                                   placeholder="Ej: 300 123 4567">
+                                   value="<?= $c['telefono'] ?>">
                         </div>
                     </div>
 
@@ -41,31 +46,22 @@ include("../../includes/header.php");
                         <div class="input-group">
                             <span class="input-group-text bg-light border-0"><i class="bi bi-envelope text-primary"></i></span>
                             <input type="email" name="email" class="form-control form-control-lg bg-light border-0" 
-                                   placeholder="ejemplo@correo.com">
+                                   value="<?= $c['email'] ?>">
                         </div>
                     </div>
 
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm py-3">
-                            <i class="bi bi-check-circle-fill me-2"></i>Guardar Cliente
+                            <i class="bi bi-save-fill me-2"></i>Actualizar Cambios
                         </button>
                     </div>
                 </form>
-            </div>
-        </div>
-        
-        <div class="col-xl-4 col-lg-5">
-            <div class="alert bg-white border-0 shadow-sm rounded-4 p-4 mt-4 mt-lg-0">
-                <h6 class="fw-bold"><i class="bi bi-info-circle text-primary me-2"></i>Información</h6>
-                <p class="small text-muted mb-0">
-                    Los datos registrados aquí estarán disponibles inmediatamente en el módulo de <strong>Ventas (POS)</strong> para facturación rápida.
-                </p>
             </div>
         </div>
     </div>
 </div>
 
 <?php 
-// 2. Cierre del contenedor principal
+// 2. Cierre del layout
 include("../../includes/footer.php"); 
 ?>
