@@ -1,99 +1,93 @@
 <?php
-session_start();
-// Seguridad: Si no hay sesión iniciada, redirigir al login
-if(!isset($_SESSION['usuario'])){
-    header("Location: login.php");
-    exit();
-}
+// Incluimos la conexión y el header corregido
+include("conexion.php");
+include("includes/header.php");
 
-include("conexion.php"); // Conexión a la BD
-include("includes/header.php"); // Cargamos el menú y estilos
+// 1. Consulta de Ventas del Día
+$consulta_ventas = mysqli_query($conexion, "SELECT SUM(total) as total FROM ventas WHERE DATE(fecha) = CURDATE()");
+$datos_ventas = mysqli_fetch_assoc($consulta_ventas);
 
-// Lógica de datos (Tu código original)
-$ventas_dia = mysqli_query($conexion,"
-    SELECT SUM(total) as total 
-    FROM ventas 
-    WHERE DATE(fecha)=CURDATE()
-");
-$vd = mysqli_fetch_array($ventas_dia);
+// 2. Consulta de Total de Productos
+$consulta_productos = mysqli_query($conexion, "SELECT COUNT(*) as total FROM productos");
+$datos_productos = mysqli_fetch_assoc($consulta_productos);
 
-$productos = mysqli_query($conexion,"
-    SELECT COUNT(*) as total FROM productos
-");
-$tp = mysqli_fetch_array($productos);
-
-$stock = mysqli_query($conexion,"
-    SELECT * FROM productos
-    WHERE stock <= 5
-");
+// 3. Consulta de Stock Crítico (productos con 5 o menos unidades)
+$stock_bajo = mysqli_query($conexion, "SELECT * FROM productos WHERE stock <= 5");
 ?>
 
-<div class="container">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="display-5 fw-bold text-dark">Dashboard AMATISTA SGI</h1>
-            <p class="text-muted">Resumen general del inventario y ventas.</p>
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <h1 class="fw-bold text-dark">Dashboard AMATISTA SGI</h1>
+        <div class="bg-white shadow-sm px-4 py-2 rounded-pill border">
+            <span class="text-muted small">Bienvenido, </span>
+            <strong><?php echo $_SESSION['usuario'] ?? 'admin'; ?></strong>
+            <i class="bi bi-person-circle ms-2 text-primary"></i>
         </div>
     </div>
 
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm border-0 bg-primary text-white">
-                <div class="card-body p-4 text-center">
-                    <h5 class="card-title opacity-75">Ventas del día</h5>
-                    <h2 class="display-4 fw-bold">$ <?php echo number_format($vd['total'] ?? 0, 2); ?></h2>
+    <div class="row g-4 mb-5">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 text-white p-2" style="background: #2563eb;">
+                <div class="card-body text-center">
+                    <p class="text-uppercase small fw-bold opacity-75">Ventas del Día</p>
+                    <h2 class="display-6 fw-bold mb-0">
+                        $ <?php echo number_format($datos_ventas['total'] ?? 0, 2); ?>
+                    </h2>
                 </div>
             </div>
         </div>
-
-        <div class="col-md-6 mb-4">
-            <div class="card shadow-sm border-0 bg-success text-white">
-                <div class="card-body p-4 text-center">
-                    <h5 class="card-title opacity-75">Total productos</h5>
-                    <h2 class="display-4 fw-bold"><?php echo $tp['total']; ?></h2>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 text-white p-2" style="background: #10b981;">
+                <div class="card-body text-center">
+                    <p class="text-uppercase small fw-bold opacity-75">Total Productos</p>
+                    <h2 class="display-6 fw-bold mb-0">
+                        <?php echo $datos_productos['total'] ?? 0; ?>
+                    </h2>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="row mt-2">
-        <div class="col-12">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-white py-3">
-                    <h5 class="mb-0 text-danger fw-bold">⚠️ Productos con stock bajo</h5>
-                </div>
-                <div class="card-body">
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>Nombre del Producto</th>
-                                    <th class="text-center">Stock Disponible</th>
-                                    <th class="text-end">Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <?php while($s = mysqli_fetch_array($stock)){ ?>
-                                <tr>
-                                    <td class="fw-semibold"><?php echo $s['nombre']; ?></td>
-                                    <td class="text-center">
-                                        <span class="badge bg-danger fs-6"><?php echo $s['stock']; ?></span>
-                                    </td>
-                                    <td class="text-end text-muted small italic">Reabastecer pronto</td>
-                                </tr>
-                                <?php } ?>
-                                <?php if(mysqli_num_rows($stock) == 0): ?>
-                                    <tr>
-                                        <td colspan="3" class="text-center text-muted py-4">Todo el inventario está en niveles óptimos.</td>
-                                    </tr>
-                                <?php endif; ?>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+        <div class="card-header bg-white py-3 border-0">
+            <h5 class="fw-bold text-danger mb-0">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>Stock Crítico
+            </h5>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0 table-hover">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Producto</th>
+                        <th class="text-center">Existencia</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php 
+                    $hay_critico = false;
+                    while($prod = mysqli_fetch_array($stock_bajo)){ 
+                        $hay_critico = true;
+                    ?>
+                    <tr>
+                        <td class="ps-4 fw-bold"><?php echo $prod['nombre']; ?></td>
+                        <td class="text-center">
+                            <span class="badge bg-danger rounded-pill px-3">
+                                <?php echo $prod['stock']; ?>
+                            </span>
+                        </td>
+                    </tr>
+                    <?php } 
+                    if(!$hay_critico){
+                        echo "<tr><td colspan='2' class='text-center py-5 text-muted'>Inventario en niveles óptimos.</td></tr>";
+                    }
+                    ?>
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 
-<?php include("includes/footer.php"); // Cargamos el pie de página ?>
+<?php 
+// Incluimos el pie de página
+include("includes/footer.php"); 
+?>
