@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1:3306
--- Tiempo de generación: 10-03-2026 a las 01:06:24
+-- Tiempo de generación: 10-03-2026 a las 10:08:22
 -- Versión del servidor: 8.4.7
 -- Versión de PHP: 8.3.28
 
@@ -778,17 +778,24 @@ INSERT INTO `proveedores` (`id`, `nombre`, `telefono`, `empresa`) VALUES
 DROP TABLE IF EXISTS `usuarios`;
 CREATE TABLE IF NOT EXISTS `usuarios` (
   `id` int NOT NULL AUTO_INCREMENT,
+  `nombre` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `usuario` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `password` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+  `rol` enum('admin','cajero') COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `estado` tinyint DEFAULT '1',
+  `fecha_registro` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `usuario` (`usuario`)
+) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `usuarios`
 --
 
-INSERT INTO `usuarios` (`id`, `usuario`, `password`) VALUES
-(1, 'admin', 'e10adc3949ba59abbe56e057f20f883e');
+INSERT INTO `usuarios` (`id`, `nombre`, `usuario`, `password`, `rol`, `estado`, `fecha_registro`) VALUES
+(1, 'Helmunth Avila', 'helmunth', 'e10adc3949ba59abbe56e057f20f883e', 'admin', 1, '2026-03-10 09:52:23'),
+(2, 'Maria Gonzalez', 'Maju', 'e10adc3949ba59abbe56e057f20f883e', 'cajero', 1, '2026-03-10 09:52:23'),
+(3, 'Carlos Perez', 'Paola', 'e10adc3949ba59abbe56e057f20f883e', 'cajero', 1, '2026-03-10 09:52:23');
 
 -- --------------------------------------------------------
 
