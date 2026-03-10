@@ -1,26 +1,32 @@
 <?php
-// 1. Conexión a la base de datos
+
+// Incluye el archivo de conexión a la base de datos
 include("../../conexion.php");
 
-// 2. Recepción de datos mediante POST
+// Recibe los datos enviados desde el formulario mediante POST
 $id       = $_POST['id'];
 $nombre   = mysqli_real_escape_string($conexion, $_POST['nombre']);
 $telefono = mysqli_real_escape_string($conexion, $_POST['telefono']);
 $email    = mysqli_real_escape_string($conexion, $_POST['email']);
 
-// 3. Sentencia SQL para actualizar el registro específico
+// Consulta SQL para actualizar los datos del cliente seleccionado
 $sql = "UPDATE clientes SET 
         nombre = '$nombre', 
         telefono = '$telefono', 
         email = '$email' 
         WHERE id = $id";
 
-// 4. Ejecución de la consulta
+// Ejecuta la consulta en la base de datos
 if (mysqli_query($conexion, $sql)) {
-    // Redirigir al listado si la actualización fue exitosa
+
+    // Redirige al listado de clientes mostrando mensaje de actualización exitosa
     header("Location: listar.php?msj=actualizado");
+
 } else {
-    // Mostrar error en caso de falla
+
+    // Muestra el error de MySQL si ocurre algún problema en la actualización
     echo "Error al actualizar: " . mysqli_error($conexion);
+
 }
+
 ?>

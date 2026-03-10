@@ -1,24 +1,33 @@
 <?php
-// 1. Conexión a la base de datos
+// Incluye el archivo de conexión a la base de datos
 include("../../conexion.php");
 
-// 2. Verificar que se haya recibido un ID válido
+// Verifica que se haya recibido el ID del cliente mediante la URL
 if (isset($_GET['id'])) {
-    // Limpiamos el ID para evitar inyecciones SQL
+
+    // Limpia el valor del ID para evitar inyecciones SQL
     $id = mysqli_real_escape_string($conexion, $_GET['id']);
 
-    // 3. Ejecutar la sentencia de eliminación
+    // Consulta SQL para eliminar el cliente seleccionado
     $sql = "DELETE FROM clientes WHERE id = '$id'";
 
+    // Ejecuta la consulta de eliminación
     if (mysqli_query($conexion, $sql)) {
-        // Si se elimina con éxito, volvemos al listado con un mensaje
+
+        // Redirige al listado mostrando mensaje de eliminación exitosa
         header("Location: listar.php?res=eliminado");
+
     } else {
-        // Si hay un error (por ejemplo, si el cliente tiene ventas asociadas)
+
+        // Muestra el error si la eliminación falla (por ejemplo, por relaciones en la base de datos)
         echo "Error al eliminar el cliente: " . mysqli_error($conexion);
+
     }
+
 } else {
-    // Si intentan entrar sin un ID, los devolvemos al listado
+
+    // Redirige al listado si alguien intenta acceder al archivo sin enviar un ID
     header("Location: listar.php");
+
 }
 ?>

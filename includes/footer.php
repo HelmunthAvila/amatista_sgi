@@ -1,3 +1,4 @@
+<!-- Footer del sistema Amatista SGI con información de derechos, versión y carga del script de Bootstrap -->
 </div> <footer class="mt-auto py-4 text-center text-muted border-top bg-white">
         <div class="container-fluid">
             <span class="small">&copy; 2026 <strong>Amatista SGI</strong> - Gestión de Inventario</span>
