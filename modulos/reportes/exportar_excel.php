@@ -1,18 +1,23 @@
 <?php
-
 include("../../conexion.php");
 
 header("Content-Type: application/xls");
-header("Content-Disposition: attachment; filename=ventas.xls");
+header("Content-Disposition: attachment; filename=inventario.xls");
 
-$ventas = mysqli_query($conexion,"SELECT * FROM ventas");
+echo "ID\tProducto\tMarca\tTalla\tColor\tPrecio\tStock\n";
 
-echo "ID\tFecha\tTotal\n";
+$query = "SELECT * FROM productos";
+$resultado = mysqli_query($conexion,$query);
 
-while($v=mysqli_fetch_array($ventas)){
+while($fila = mysqli_fetch_assoc($resultado)){
 
-echo $v['id']."\t".$v['fecha']."\t".$v['total']."\n";
+echo $fila['id']."\t";
+echo $fila['nombre']."\t";
+echo $fila['marca']."\t";
+echo $fila['talla']."\t";
+echo $fila['color']."\t";
+echo $fila['precio']."\t";
+echo $fila['stock']."\n";
 
 }
-
 ?>
