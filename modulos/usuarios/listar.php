@@ -18,6 +18,16 @@ $usuarios = mysqli_query($conexion, "SELECT * FROM usuarios ORDER BY nombre ASC"
         </a>
     </div>
 
+    <?php if (isset($_GET['status']) && $_GET['status'] == 'deleted'): ?>
+        <div class="alert alert-success alert-dismissible fade show border-0 shadow-sm rounded-4 mb-4 d-flex align-items-center" role="alert">
+            <i class="bi bi-check-circle-fill text-success fs-4 me-3"></i>
+            <div>
+                <strong class="text-success">¡Operación exitosa!</strong> El acceso del usuario ha sido removido del sistema de forma permanente.
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+
     <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
         <div class="table-responsive">
             <table class="table align-middle mb-0 table-hover">
@@ -70,7 +80,7 @@ $usuarios = mysqli_query($conexion, "SELECT * FROM usuarios ORDER BY nombre ASC"
                                     <i class="bi bi-pencil-square text-primary"></i>
                                 </a>
                                 <a href="eliminar.php?id=<?php echo $u['id']; ?>" class="btn btn-sm btn-white" 
-                                   onclick="return confirm('¿Eliminar acceso de este usuario?')" title="Eliminar">
+                                   onclick="return confirm('¿Está completamente seguro de eliminar el acceso de este usuario? Esta acción no se puede deshacer.')" title="Eliminar">
                                     <i class="bi bi-trash text-danger"></i>
                                 </a>
                             </div>
