@@ -1,71 +1,65 @@
 <?php
-// Inicia la sesión para acceder a las variables de usuario autenticado
 session_start();
 
-// Valida que exista una sesión activa; si no, redirige al login
 if (!isset($_SESSION['id_usuario'])) {
     header("Location: login.php");
     exit();
 }
 
-// Incluye el archivo de conexión a la base de datos
 require_once("conexion.php");
-
-// Incluye el encabezado del sistema (menú, estilos, sidebar)
 include("includes/header.php");
 
 /* --- LÓGICA DE DATOS --- */
-
-// Función reutilizable para ejecutar una consulta y devolver un resultado asociativo
 function obtenerDato($conexion, $sql) {
     $resultado = mysqli_query($conexion, $sql);
     return mysqli_fetch_assoc($resultado);
 }
 
-// Consulta para obtener el total de ventas del día
+// Indicadores maestros
 $ventas_dia = obtenerDato($conexion, "SELECT SUM(total) as total FROM ventas WHERE DATE(fecha)=CURDATE()");
-
-// Consulta para obtener el total de ventas del mes actual
 $ventas_mes = obtenerDato($conexion, "SELECT SUM(total) as total FROM ventas WHERE MONTH(fecha)=MONTH(CURDATE()) AND YEAR(fecha)=YEAR(CURDATE())");
+$productos  = obtenerDato($conexion, "SELECT COUNT(*) as total FROM productos");
+$clientes   = obtenerDato($conexion, "SELECT COUNT(*) as total FROM clientes");
 
-// Consulta para contar el total de productos registrados
-$productos = obtenerDato($conexion, "SELECT COUNT(*) as total FROM productos");
+// Stock Crítico
+$stock_bajo = mysqli_query($conexion, "SELECT nombre, marca, talla, stock FROM productos WHERE stock <= 5 ORDER BY stock ASC LIMIT 5");
 
-// Consulta para listar productos con stock bajo o crítico
-$stock_bajo = mysqli_query($conexion, "SELECT nombre, marca, talla, stock FROM productos WHERE stock <= 5 ORDER BY stock ASC");
+// CORRECCIÓN DE LA CONSULTA usando 'detalle_venta' en singular
+$top_vendidos = mysqli_query($conexion, "
+    SELECT p.nombre, p.marca, SUM(dv.cantidad) as total_vendido 
+    FROM detalle_venta dv
+    JOIN productos p ON dv.id_producto = p.id
+    GROUP BY dv.id_producto
+    ORDER BY total_vendido DESC
+    LIMIT 5
+");
 ?>
 
-<!-- Contenedor principal del dashboard -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <div class="container-fluid mt-4">
 
-    <!-- Encabezado del dashboard con saludo y menú de usuario -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="h3 fw-bold text-dark">Dashboard AMATISTA SGI</h1>
+        <div>
+            <h1 class="h3 fw-bold text-dark mb-0">Dashboard AMATISTA SGI</h1>
+            <p class="text-muted small mb-0">Resumen operativo y analítica de calzado.</p>
+        </div>
 
-        <!-- Menú desplegable del usuario -->
         <div class="dropdown">
-            <button class="btn btn-white shadow-sm rounded-pill px-4 py-2 border dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                <i class="bi bi-person-circle text-primary me-2"></i>
+            <button class="btn btn-white shadow-sm rounded-pill px-4 py-2 border dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-person-circle me-2" style="color: #6f42c1 !important;"></i>
                 <span class="text-muted me-2">Hola,</span>
-
-                <!-- Muestra el nombre del usuario autenticado -->
                 <strong class="text-dark"><?php echo $_SESSION['nombre_usuario'] ?? 'Usuario'; ?></strong>
             </button>
-            
-            <!-- Opciones del menú de usuario -->
             <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-4 mt-2">
-
-                <!-- Opción visible solo para administradores -->
                 <?php if(isset($_SESSION['rol']) && $_SESSION['rol'] == 'admin'): ?>
                 <li>
                     <a class="dropdown-item py-2" href="modulos/usuarios/listar.php">
-                        <i class="bi bi-shield-lock me-2 text-primary"></i> Gestionar Usuarios
+                        <i class="bi bi-shield-lock me-2" style="color: #6f42c1 !important;"></i> Gestionar Usuarios
                     </a>
                 </li>
                 <li><hr class="dropdown-divider"></li>
                 <?php endif; ?>
-
-                <!-- Opción para cerrar sesión -->
                 <li>
                     <a class="dropdown-item py-2 text-danger" href="logout.php">
                         <i class="bi bi-box-arrow-right me-2"></i> Cerrar Sesión
@@ -75,78 +69,151 @@ $stock_bajo = mysqli_query($conexion, "SELECT nombre, marca, talla, stock FROM p
         </div>
     </div>
 
-    <!-- Tarjetas de indicadores del sistema -->
     <div class="row g-4 mb-4">
         <?php 
-        // Definición de las tarjetas estadísticas del dashboard
         $cards = [
-            ["Ventas Hoy", $ventas_dia['total'] ?? 0, "bi-cash-stack", "#2563eb"],
-            ["Ventas Mes", $ventas_mes['total'] ?? 0, "bi-graph-up", "#059669"],
-            ["Productos", $productos['total'] ?? 0, "bi-box-seam", "#7c3aed"],
-            ["Stock Bajo", mysqli_num_rows($stock_bajo), "bi-exclamation-triangle", "#dc2626"]
+            ["Ventas Hoy", $ventas_dia['total'] ?? 0, "bi-cash-stack", "moneda"],
+            ["Ventas Mes", $ventas_mes['total'] ?? 0, "bi-graph-up", "moneda"],
+            ["Catálogo", $productos['total'] ?? 0, "bi-box-seam", "cantidad"],
+            ["Mis Clientes", $clientes['total'] ?? 0, "bi-people", "cantidad"]
         ];
 
-        // Genera dinámicamente las tarjetas con sus indicadores
         foreach ($cards as $c) {
+            if ($c[3] === "moneda") {
+                $valor_formateado = '$' . number_format($c[1], 0, ",", ".");
+            } else {
+                $valor_formateado = number_format($c[1], 0, ",", ".") . ' <span class="fs-6 fw-normal text-muted">und.</span>';
+            }
+
             echo '<div class="col-md-3">
-                    <div class="card border-0 shadow-sm text-white" style="background:'.$c[3].'">
-                        <div class="card-body text-center">
-                            <i class="bi '.$c[2].' fs-2"></i>
-                            <p class="small text-uppercase mt-2">'.$c[0].'</p>
-                            <h3 class="fw-bold">$'.number_format($c[1], 0, ",", ".").'</h3>
+                    <div class="card border-0 shadow-sm rounded-4 h-100 bg-white border-start border-4" style="border-color: #6f42c1 !important;">
+                        <div class="card-body d-flex align-items-center p-3">
+                            <div class="bg-light rounded-circle p-3 me-3 d-flex align-items-center justify-content-center text-secondary" style="width: 50px; height: 50px;">
+                                <i class="bi '.$c[2].' fs-4"></i>
+                            </div>
+                            <div>
+                                <p class="small text-uppercase text-muted mb-1 fw-semibold" style="letter-spacing: 0.5px; font-size: 0.75rem;">'.$c[0].'</p>
+                                <h4 class="fw-bold text-dark mb-0">'.$valor_formateado.'</h4>
+                            </div>
                         </div>
-                  </div>
-              </div>';
+                    </div>
+                  </div>';
         }
         ?>
     </div>
 
-    <!-- Tabla que muestra los productos con stock crítico -->
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm rounded-4 bg-white">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-bezier2 me-2" style="color: #6f42c1;"></i>Flujo Comercial Semanal</h5>
+                    <div style="height: 200px; position: relative;">
+                        <canvas id="graficoVentas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        <!-- Encabezado de la tabla -->
-        <div class="card-header bg-white py-3 border-0">
-            <h5 class="fw-bold text-danger mb-0">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>Productos con Stock Crítico
-            </h5>
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 bg-white">
+                <div class="card-header bg-white py-3 border-0">
+                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-exclamation-triangle text-danger me-2"></i>Stock Crítico de Calzado</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3 small fw-bold text-muted">Zapato</th>
+                                <th class="small fw-bold text-muted">Talla</th>
+                                <th class="text-center small fw-bold text-muted">Stock</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if ($stock_bajo && mysqli_num_rows($stock_bajo) > 0): ?>
+                                <?php while($p = mysqli_fetch_assoc($stock_bajo)): ?>
+                                <tr>
+                                    <td class="ps-3 fw-bold small text-dark"><?php echo htmlspecialchars($p['nombre']); ?></td>
+                                    <td><span class="badge bg-light text-dark border">T: <?php echo $p['talla']; ?></span></td>
+                                    <td class="text-center">
+                                        <span class="badge bg-danger-subtle text-danger rounded-pill px-2.5 py-1.5 fw-bold" style="font-size: 0.75rem;">
+                                            <?php echo $p['stock']; ?> und.
+                                        </span>
+                                    </td>
+                                </tr>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <tr><td colspan="3" class="text-center text-muted small py-4">Inventario óptimo.</td></tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
 
-        <!-- Tabla responsiva de productos -->
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-
-                <!-- Encabezado de columnas -->
-                <thead class="table-light">
-                    <tr>
-                        <th class="ps-4">Producto</th>
-                        <th>Marca</th>
-                        <th>Talla</th>
-                        <th class="text-center">Stock</th>
-                    </tr>
-                </thead>
-
-                <!-- Cuerpo de la tabla con datos de productos -->
-                <tbody>
-                    <?php while($p = mysqli_fetch_assoc($stock_bajo)): ?>
-                    <tr>
-                        <td class="ps-4 fw-bold"><?php echo htmlspecialchars($p['nombre']); ?></td>
-                        <td><?php echo htmlspecialchars($p['marca']); ?></td>
-                        <td><?php echo htmlspecialchars($p['talla']); ?></td>
-
-                        <!-- Muestra el stock con una alerta visual -->
-                        <td class="text-center">
-                            <span class="badge bg-danger px-3 py-2"><?php echo $p['stock']; ?></span>
-                        </td>
-                    </tr>
-                    <?php endwhile; ?>
-                </tbody>
-
-            </table>
+        <div class="col-md-6">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 bg-white">
+                <div class="card-header bg-white py-3 border-0">
+                    <h6 class="fw-bold text-dark mb-0"><i class="bi bi-star text-warning me-2"></i>Top 5 Modelos Más Vendidos</h6>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th class="ps-3 small fw-bold text-muted">Silueta / Estilo</th>
+                                <th class="small fw-bold text-muted">Marca</th>
+                                <th class="text-center small fw-bold text-muted">Salidas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php if ($top_vendidos && mysqli_num_rows($top_vendidos) > 0): ?>
+                                <?php while($tv = mysqli_fetch_assoc($top_vendidos)): ?>
+                                <tr>
+                                    <td class="ps-3 fw-medium text-dark small"><?php echo htmlspecialchars($tv['nombre']); ?></td>
+                                    <td class="text-muted small"><?php echo htmlspecialchars($tv['marca']); ?></td>
+                                    <td class="text-center fw-bold text-dark small"><?php echo $tv['total_vendido']; ?> pares</td>
+                                </tr>
+                                <?php endwhile; ?>
+                            <?php else: ?>
+                                <tr><td colspan="3" class="text-center text-muted small py-4">Sin registros comerciales acumulados.</td></tr>
+                            <?php endif; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 
-<?php 
-// Incluye el pie de página del sistema
-include("includes/footer.php"); 
-?>
+<script>
+const ctx = document.getElementById('graficoVentas').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+        datasets: [{
+            label: 'Ventas Semanales',
+            data: [450000, 320000, 580000, 490000, 850000, 1200000, 950000], 
+            borderColor: '#6f42c1', 
+            backgroundColor: 'rgba(111, 66, 193, 0.04)',
+            tension: 0.35,
+            fill: true,
+            borderWidth: 2.5,
+            pointRadius: 2,
+            pointHoverRadius: 5
+        }]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: { 
+            y: { grid: { display: false }, ticks: { font: { size: 10 } } },
+            x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+        }
+    }
+});
+</script>
+
+<?php include("includes/footer.php"); ?>
