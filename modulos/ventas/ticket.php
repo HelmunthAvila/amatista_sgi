@@ -6,7 +6,7 @@ if(!isset($_GET['id'])){
     die("ID de venta no proporcionado.");
 }
 
-$id_venta = $_GET['id'];
+$id_venta = intval($_GET['id']); // Validamos como entero por seguridad
 
 // 2. Consultar encabezado de la venta y datos del cliente
 $query_venta = mysqli_query($conexion, "SELECT v.*, c.nombre as cliente, c.telefono 
@@ -15,11 +15,20 @@ $query_venta = mysqli_query($conexion, "SELECT v.*, c.nombre as cliente, c.telef
     WHERE v.id = $id_venta");
 $venta = mysqli_fetch_array($query_venta);
 
-// 3. Consultar los productos vendidos usando 'detalle_venta' en singular
-$detalle = mysqli_query($conexion, "SELECT d.*, p.nombre 
+if(!$venta){
+    die("La venta especificada no existe.");
+}
+
+// 3. SOLUCIÓN AQUÍ: Seleccionamos d.precio_unitario renombrándolo 'as precio' 
+// para que coincida exactamente con la línea 72 de tu tabla
+$detalle = mysqli_query($conexion, "SELECT d.cantidad, d.precio_unitario as precio, p.nombre 
     FROM detalle_venta d 
     INNER JOIN productos p ON d.id_producto = p.id 
     WHERE d.id_venta = $id_venta");
+
+if(!$detalle){
+    die("Error al consultar el detalle: " . mysqli_error($conexion));
+}
 ?>
 
 <!DOCTYPE html>
