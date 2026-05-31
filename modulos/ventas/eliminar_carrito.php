@@ -1,31 +1,25 @@
 <?php
-// Inicia la sesión para poder acceder al carrito almacenado en variables de sesión
 session_start();
 
-// Verifica que exista el carrito en la sesión
 if(!isset($_SESSION['carrito'])){
     header("Location: pos.php");
     exit();
 }
 
-// Verifica que se haya recibido el índice del producto a eliminar
 if(isset($_GET['id'])){
+    $index = intval($_GET['id']);
 
-    // Obtiene el índice del producto dentro del carrito
-    $index = $_GET['id'];
-
-    // Valida que el índice exista dentro del arreglo del carrito
     if(isset($_SESSION['carrito'][$index])){
-
-        // Elimina el producto seleccionado del carrito
+        $nombre_prod = $_SESSION['carrito'][$index]['nombre'];
         unset($_SESSION['carrito'][$index]);
-
-        // Reorganiza los índices del arreglo para evitar huecos
-        $_SESSION['carrito'] = array_values($_SESSION['carrito']);
+        $_SESSION['carrito'] = array_values($_SESSION['carrito']); // Reindexar
+        
+        $_SESSION['alerta'] = ['tipo' => 'success', 'mensaje' => "Se quitó <strong>{$nombre_prod}</strong> del carrito de compras."];
+    } else {
+        $_SESSION['alerta'] = ['tipo' => 'danger', 'mensaje' => 'El ítem que intenta remover no pertenece al carrito activo.'];
     }
 }
 
-// Redirige nuevamente al sistema POS
 header("Location: pos.php");
 exit();
 ?>

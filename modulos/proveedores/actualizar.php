@@ -1,10 +1,12 @@
 <?php
+// Iniciamos sesión para interactuar con el sistema de notificaciones
+session_start();
+
 // Incluye el archivo de conexión a la base de datos
 include("../../conexion.php");
 
 // Recibe los datos enviados desde el formulario de edición de proveedores
-// Se limpian los valores para evitar inyección SQL
-$id       = mysqli_real_escape_string($conexion, $_POST['id']);
+$id       = intval($_POST['id']);
 $nombre   = mysqli_real_escape_string($conexion, $_POST['nombre']);
 $telefono = mysqli_real_escape_string($conexion, $_POST['telefono']);
 $empresa  = mysqli_real_escape_string($conexion, $_POST['empresa']);
@@ -14,18 +16,22 @@ $sql = "UPDATE proveedores SET
         nombre = '$nombre', 
         telefono = '$telefono', 
         empresa = '$empresa' 
-        WHERE id = '$id'";
+        WHERE id = $id";
 
 // Ejecuta la consulta de actualización
 if (mysqli_query($conexion, $sql)) {
-
-    // Si la actualización es exitosa redirige al listado de proveedores
-    header("Location: listar.php?res=actualizado");
-
+    $_SESSION['alerta'] = [
+        'tipo' => 'success',
+        'mensaje' => '<strong>¡Actualizado!</strong> Los datos del proveedor se modificaron con éxito.'
+    ];
 } else {
-
-    // Si ocurre un error muestra el mensaje técnico
-    echo "Error al actualizar: " . mysqli_error($conexion);
-
+    $_SESSION['alerta'] = [
+        'tipo' => 'danger',
+        'mensaje' => '<strong>Error:</strong> No se pudo actualizar la información del proveedor. ' . mysqli_error($conexion)
+    ];
 }
+
+// Redirige al listado sin ensuciar la URL
+header("Location: listar.php");
+exit();
 ?>

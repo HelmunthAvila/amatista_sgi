@@ -1,4 +1,7 @@
 <?php
+// Iniciamos sesión para poder usar las alertas inteligentes
+session_start();
+
 // Incluye el archivo de conexión a la base de datos
 include("../../conexion.php");
 
@@ -13,14 +16,20 @@ $sql = "INSERT INTO clientes (nombre, telefono, email)
 
 // Ejecuta la consulta de inserción en la base de datos
 if (mysqli_query($conexion, $sql)) {
-
-    // Redirige al listado de clientes mostrando mensaje de registro exitoso
-    header("Location: listar.php?res=exito");
-
+    // Alerta inteligente de éxito
+    $_SESSION['alerta'] = [
+        'tipo' => 'success',
+        'mensaje' => '<strong>¡Éxito!</strong> El cliente se ha registrado correctamente en Amatista SGI.'
+    ];
 } else {
-
-    // Muestra el error si ocurre algún problema al guardar el cliente
-    echo "Error al registrar cliente: " . mysqli_error($conexion);
-
+    // Alerta inteligente de error
+    $_SESSION['alerta'] = [
+        'tipo' => 'danger',
+        'mensaje' => '<strong>Error:</strong> No se pudo registrar el cliente. ' . mysqli_error($conexion)
+    ];
 }
+
+// Redirige al listado de clientes de forma limpia
+header("Location: listar.php");
+exit();
 ?>

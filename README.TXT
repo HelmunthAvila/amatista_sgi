@@ -1,11 +1,13 @@
-====================================================
-AMATISTA SGI
-Sistema de Gestión de Inventario y Ventas
-====================================================
+========================================================================
+ AMATISTA SGI - Sistema de Gestión de Inventario y Ventas
+========================================================================
 
-Autor: Helmuth Vladimir Avila Ordoñez
-Programa: ADSO – Análisis y Desarrollo de Software
+INFORMACIÓN GENERAL
+------------------------------------------------------------------------
+Autor:       Helmuth Vladimir Avila Ordoñez
+Programa:    ADSO – Análisis y Desarrollo de Software (SENA)
 Repositorio: https://github.com/HelmunthAvila/amatista_sgi
+Contacto:    A través del repositorio oficial de GitHub
 
 ----------------------------------------------------
 1. DESCRIPCIÓN DEL PROYECTO
@@ -26,8 +28,56 @@ El sistema está pensado para pequeños y medianos
 negocios que necesitan controlar su inventario y
 registrar ventas de forma sencilla.
 
+------------------------------------------------------------------------
+2. ARQUITECTURA Y TECNOLOGÍAS UTILIZADAS
+------------------------------------------------------------------------
+El sistema está construido sobre tecnologías web abiertas:
+- Frontend: HTML5, CSS3, JavaScript (ES6+), Bootstrap 5 y Bootstrap Icons.
+- Backend:  PHP 7.4 o superior (Programación imperativa y segura).
+- Base de Datos: MySQL / MariaDB (Motor relacional estructurado).
+- Servidor recomendado: Apache (mediante suites como XAMPP o WAMP).
+
+------------------------------------------------------------------------
+3. ESTRUCTURA DEL PROYECTO (DIRECTORIOS PRINCIPALES)
+------------------------------------------------------------------------
+amatista_sgi/
+│
+├── conexion.php            # Conexión centralizada a la Base de Datos
+├── login.php               # Pantalla de autenticación y acceso seguro
+├── logout.php              # Cierre de sesión y destrucción de cookies
+│
+├── includes/
+│   ├── header.php          # Barra de navegación, sidebar y estilos globales
+│   └── footer.php          # Cierres de etiquetas HTML y scripts comunes
+│
+├── modulos/
+│   ├── clientes/           # Gestión completa de Clientes (Directorio)
+│   ├── proveedores/        # Gestión de Proveedores y Canales de Suministro
+│   ├── productos/          # Catálogo e Inventario de productos (calzado)
+│   ├── usuarios/           # Administración de Usuarios y Roles del sistema
+│   ├── ventas/             # Historial técnico de transacciones realizadas
+│   └── reportes/           # Exportación de datos y reportes comerciales
+│
+└── pos/
+    ├── pos.php             # Interfaz de Punto de Venta para el cajero
+    ├── agregar_carrito.php # Control lógico de adición mediante variables $_SESSION
+    ├── eliminar_producto.php # Remoción de ítems en el carrito de compras
+    └── finalizar_venta.php # Cierre de transacción y descuento automático de stock
+
+------------------------------------------------------------------------
+4. REQUISITOS TÉCNICOS ESENCIALES (INGENIERÍA)
+------------------------------------------------------------------------
+- Identidad Visual: Interfaz corporativa regida bajo la paleta Amatista SGI
+  (--primary-color: #512da8).
+- Experiencia de Usuario: Cierre automático de alertas informativas a los
+  2 segundos exactos mediante JavaScript nativo.
+- Seguridad Robustecida: Mitigación de ataques por inyección SQL mediante 
+  sanitización estricta (mysqli_real_escape_string) y casteo de IDs (intval).
+- Redirecciones Limpias: Transferencia de estados usando variables de sesión 
+  ($_SESSION['alerta']) para evitar parámetros sucios en las URLs (?res=exito).
+
 ----------------------------------------------------
-2. CARACTERÍSTICAS DEL SISTEMA
+5. CARACTERÍSTICAS DEL SISTEMA
 ----------------------------------------------------
 
 El sistema incluye los siguientes módulos principales:
@@ -41,7 +91,7 @@ El sistema incluye los siguientes módulos principales:
 7. Exportación de información
 
 ----------------------------------------------------
-3. TECNOLOGÍAS UTILIZADAS
+6. TECNOLOGÍAS UTILIZADAS
 ----------------------------------------------------
 
 Lenguajes y tecnologías utilizadas:
@@ -61,34 +111,7 @@ Servidor recomendado:
 - PHP 7.4 o superior
 
 ----------------------------------------------------
-4. ESTRUCTURA DEL PROYECTO
-----------------------------------------------------
-
-amatista_sgi/
-
-conexion.php
-login.php
-logout.php
-
-includes/
-    header.php
-    footer.php
-
-modulos/
-    productos/
-    clientes/
-    usuarios/
-    ventas/
-    reportes/
-
-pos/
-    pos.php
-    agregar_carrito.php
-    eliminar_producto.php
-    finalizar_venta.php
-
-----------------------------------------------------
-5. MÓDULO DE USUARIOS
+7. MÓDULO DE USUARIOS
 ----------------------------------------------------
 
 Permite administrar el acceso al sistema.
@@ -110,7 +133,7 @@ password_hash()
 Esto evita guardar contraseñas en texto plano.
 
 ----------------------------------------------------
-6. MÓDULO DE PRODUCTOS
+8. MÓDULO DE PRODUCTOS
 ----------------------------------------------------
 
 Permite registrar y administrar el inventario.
@@ -133,7 +156,7 @@ Campos principales:
 - Stock
 
 ----------------------------------------------------
-7. MÓDULO DE CLIENTES
+9. MÓDULO DE CLIENTES
 ----------------------------------------------------
 
 Permite administrar la información de los clientes.
@@ -146,7 +169,7 @@ Funciones:
 - Consultar clientes
 
 ----------------------------------------------------
-8. PUNTO DE VENTA (POS)
+10. PUNTO DE VENTA (POS)
 ----------------------------------------------------
 
 El sistema incluye un módulo de ventas tipo POS.
@@ -165,7 +188,7 @@ El carrito de compras se almacena mediante sesiones:
 $_SESSION['carrito']
 
 ----------------------------------------------------
-9. REPORTES
+11. REPORTES
 ----------------------------------------------------
 
 El sistema permite generar reportes para el control
@@ -178,7 +201,7 @@ Reportes disponibles:
 - Exportación de datos a Excel
 
 ----------------------------------------------------
-10. SEGURIDAD
+12. SEGURIDAD
 ----------------------------------------------------
 
 El sistema implementa varias medidas básicas de
@@ -190,7 +213,7 @@ seguridad:
 - Validación de stock en ventas
 
 ----------------------------------------------------
-11. INSTALACIÓN DEL SISTEMA
+13. INSTALACIÓN DEL SISTEMA
 ----------------------------------------------------
 
 1. Descargar o clonar el repositorio
@@ -225,7 +248,7 @@ $db   = "amatista_sgi";
 http://localhost/amatista_sgi
 
 ----------------------------------------------------
-12. USUARIO DE PRUEBA
+14. USUARIO DE PRUEBA
 ----------------------------------------------------
 
 Usuario: helmunth

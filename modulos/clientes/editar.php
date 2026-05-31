@@ -3,88 +3,103 @@
 include("../../conexion.php");
 include("../../includes/header.php");
 
-// Obtiene el ID del cliente enviado desde el listado
-$id = $_GET['id'];
+// Obtiene el ID del cliente enviado desde el listado de forma segura
+$id = intval($_GET['id']);
 
 // Consulta la información del cliente seleccionado
 $query = mysqli_query($conexion, "SELECT * FROM clientes WHERE id = $id");
-
-// Convierte el resultado en un arreglo asociativo
 $c = mysqli_fetch_assoc($query);
+
+if(!$c) {
+    echo "<div class='container mt-4'><div class='alert alert-danger'>Cliente no encontrado.</div></div>";
+    include("../../includes/footer.php");
+    exit();
+}
 ?>
 
-<!-- Contenedor principal del módulo de edición de clientes -->
-<div class="container-fluid">
+<style>
+    :root {
+        --primary-color: #512da8;
+        --primary-hover: #432293;
+        --border-radius-card: 16px;
+    }
+    .btn-amatista-primary {
+        background-color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+        color: #ffffff !important;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    .btn-amatista-primary:hover {
+        background-color: var(--primary-hover) !important;
+        border-color: var(--primary-hover) !important;
+        transform: translateY(-1px);
+    }
+    .card-custom {
+        border-radius: var(--border-radius-card) !important;
+        border: none !important;
+        background-color: #ffffff;
+    }
+    .form-control-custom {
+        border-radius: 10px !important;
+        border: 1px solid #ced4da !important;
+        padding: 0.6rem 1rem;
+    }
+    .form-control-custom:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 0.25rem rgba(81, 45, 168, 0.15) !important;
+    }
+</style>
 
-    <!-- Encabezado con botón para regresar al listado -->
+<div class="container-fluid px-4 py-3">
+
     <div class="mb-4">
-        <a href="listar.php" class="btn btn-link text-decoration-none text-muted p-0 mb-2">
+        <a href="listar.php" class="btn btn-link text-decoration-none text-muted p-0 mb-2 small fw-semibold">
             <i class="bi bi-arrow-left me-1"></i> Volver al listado
         </a>
-
-        <!-- Título de la página -->
-        <h2 class="fw-bold text-dark">Editar Información del Cliente</h2>
-
-        <!-- Mensaje que indica qué cliente se está editando -->
+        <h2 class="fw-bold text-dark" style="letter-spacing: -0.5px;">Editar Información del Cliente</h2>
         <p class="text-muted small">
             Modifique los campos necesarios para actualizar al cliente: 
-            <strong><?= $c['nombre'] ?></strong>
+            <strong><?php echo htmlspecialchars($c['nombre']); ?></strong>
         </p>
     </div>
 
     <div class="row">
-
-        <!-- Columna donde se encuentra el formulario de edición -->
         <div class="col-xl-5 col-lg-7">
-
-            <!-- Tarjeta que contiene el formulario -->
-            <div class="card border-0 shadow-sm rounded-4 p-4">
-
-                <!-- Formulario que envía los datos al archivo actualizar.php -->
+            <div class="card card-custom shadow-sm p-4">
                 <form action="actualizar.php" method="POST">
 
-                    <!-- Campo oculto para enviar el ID del cliente -->
-                    <input type="hidden" name="id" value="<?= $c['id'] ?>">
+                    <input type="hidden" name="id" value="<?php echo $c['id']; ?>">
                     
-                    <!-- Campo para editar el nombre del cliente -->
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-uppercase text-muted">Nombre Completo</label>
+                        <label class="form-label small fw-semibold text-secondary text-uppercase">Nombre Completo</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-light border-0">
-                                <i class="bi bi-person text-primary"></i>
-                            </span>
-                            <input type="text" name="nombre" class="form-control form-control-lg bg-light border-0" 
-                                   value="<?= $c['nombre'] ?>" required>
+                            <span class="input-group-text bg-light border text-muted"><i class="bi bi-person"></i></span>
+                            <input type="text" name="nombre" class="form-control form-control-custom" style="border-radius: 0 10px 10px 0 !important;"
+                                   value="<?php echo htmlspecialchars($c['nombre']); ?>" required>
                         </div>
                     </div>
 
-                    <!-- Campo para editar el teléfono del cliente -->
                     <div class="mb-3">
-                        <label class="form-label fw-bold small text-uppercase text-muted">Teléfono / Celular</label>
+                        <label class="form-label small fw-semibold text-secondary text-uppercase">Teléfono / Celular</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-light border-0">
-                                <i class="bi bi-telephone text-primary"></i>
-                            </span>
-                            <input type="text" name="telefono" class="form-control form-control-lg bg-light border-0" 
-                                   value="<?= $c['telefono'] ?>">
+                            <span class="input-group-text bg-light border text-muted"><i class="bi bi-telephone"></i></span>
+                            <input type="text" name="telefono" class="form-control form-control-custom" style="border-radius: 0 10px 10px 0 !important;"
+                                   value="<?php echo htmlspecialchars($c['telefono']); ?>">
                         </div>
                     </div>
 
-                    <!-- Campo para editar el correo electrónico -->
                     <div class="mb-4">
-                        <label class="form-label fw-bold small text-uppercase text-muted">Correo Electrónico</label>
+                        <label class="form-label small fw-semibold text-secondary text-uppercase">Correo Electrónico</label>
                         <div class="input-group">
-                            <span class="input-group-text bg-light border-0">
-                                <i class="bi bi-envelope text-primary"></i>
-                            </span>
-                            <input type="email" name="email" class="form-control form-control-lg bg-light border-0" 
-                                   value="<?= $c['email'] ?>">
+                            <span class="input-group-text bg-light border text-muted"><i class="bi bi-envelope"></i></span>
+                            <input type="email" name="email" class="form-control form-control-custom" style="border-radius: 0 10px 10px 0 !important;"
+                                   value="<?php echo htmlspecialchars($c['email']); ?>">
                         </div>
                     </div>
 
-                    <!-- Botón para guardar los cambios en la base de datos -->
                     <div class="d-grid">
-                        <button type="submit" class="btn btn-primary btn-lg rounded-pill shadow-sm py-3">
+                        <button type="submit" class="btn btn-amatista-primary rounded-pill py-3 shadow-sm">
                             <i class="bi bi-save-fill me-2"></i>Actualizar Cambios
                         </button>
                     </div>
@@ -95,7 +110,4 @@ $c = mysqli_fetch_assoc($query);
     </div>
 </div>
 
-<?php 
-// Incluye el pie de página del sistema
-include("../../includes/footer.php"); 
-?>
+<?php include("../../includes/footer.php"); ?>

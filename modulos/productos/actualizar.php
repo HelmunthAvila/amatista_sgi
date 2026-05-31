@@ -1,4 +1,7 @@
 <?php
+// Inicia la sesión para almacenar el estado de la alerta corporativa
+session_start();
+
 // Incluye el archivo de conexión a la base de datos
 include("../../conexion.php");
 
@@ -25,16 +28,20 @@ $sql = "UPDATE productos SET
         stock  = '$stock' 
         WHERE id = $id";
 
-// Ejecuta la consulta de actualización
+// Ejecuta la consulta de actualización y define alertas de sesión estilo Amatista SGI
 if (mysqli_query($conexion, $sql)) {
-
-    // Si la actualización es correcta redirige al listado de productos
-    header("Location: listar.php?msj=actualizado");
-
+    $_SESSION['alerta'] = [
+        'tipo' => 'success',
+        'mensaje' => '<strong>¡Producto modificado!</strong> Los cambios en el modelo <strong>"' . $nombre . '"</strong> fueron guardados con éxito.'
+    ];
 } else {
-
-    // Si ocurre un error muestra el mensaje técnico
-    echo "Error al actualizar el producto: " . mysqli_error($conexion);
-
+    $_SESSION['alerta'] = [
+        'tipo' => 'danger',
+        'mensaje' => '<strong>Error al modificar:</strong> No se guardaron los cambios. ' . mysqli_error($conexion)
+    ];
 }
+
+// Redirige al inventario limpio de parámetros URL
+header("Location: listar.php");
+exit();
 ?>

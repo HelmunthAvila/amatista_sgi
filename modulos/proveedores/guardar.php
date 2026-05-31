@@ -1,29 +1,33 @@
 <?php
+// Iniciamos sesión para gestionar las alertas estructuradas
+session_start();
 
-// 1. Incluir el archivo de conexión a la base de datos
+// Incluir el archivo de conexión a la base de datos
 include("../../conexion.php");
 
-// 2. Recepción de los datos enviados desde el formulario (POST)
-// Se usa mysqli_real_escape_string para evitar inyección SQL
+// Recepción de los datos enviados desde el formulario (POST)
 $nombre   = mysqli_real_escape_string($conexion, $_POST['nombre']);
 $telefono = mysqli_real_escape_string($conexion, $_POST['telefono']);
 $empresa  = mysqli_real_escape_string($conexion, $_POST['empresa']);
 
-// 3. Sentencia SQL para insertar un nuevo proveedor en la tabla proveedores
+// Sentencia SQL para insertar un nuevo proveedor
 $sql = "INSERT INTO proveedores (nombre, telefono, empresa) 
         VALUES ('$nombre', '$telefono', '$empresa')";
 
-// 4. Ejecutar la consulta en la base de datos
+// Ejecutar la consulta en la base de datos
 if (mysqli_query($conexion, $sql)) {
-
-    // Si el registro se guarda correctamente, redirigir al listado con mensaje de éxito
-    header("Location: listar.php?res=exito");
-
+    $_SESSION['alerta'] = [
+        'tipo' => 'success',
+        'mensaje' => '<strong>¡Éxito!</strong> El proveedor ha sido registrado correctamente en Amatista SGI.'
+    ];
 } else {
-
-    // Si ocurre un error en la consulta, mostrar el mensaje de error
-    echo "Error al registrar el proveedor: " . mysqli_error($conexion);
-
+    $_SESSION['alerta'] = [
+        'tipo' => 'danger',
+        'mensaje' => '<strong>Error:</strong> No se pudo registrar el proveedor. ' . mysqli_error($conexion)
+    ];
 }
 
+// Redirección limpia al listado maestro
+header("Location: listar.php");
+exit();
 ?>
