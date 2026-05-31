@@ -24,7 +24,7 @@ $clientes   = obtenerDato($conexion, "SELECT COUNT(*) as total FROM clientes");
 // Stock Crítico
 $stock_bajo = mysqli_query($conexion, "SELECT nombre, marca, talla, stock FROM productos WHERE stock <= 5 ORDER BY stock ASC LIMIT 5");
 
-// CORRECCIÓN DE LA CONSULTA usando 'detalle_venta' en singular
+// Top vendidos
 $top_vendidos = mysqli_query($conexion, "
     SELECT p.nombre, p.marca, SUM(dv.cantidad) as total_vendido 
     FROM detalle_venta dv
@@ -33,12 +33,30 @@ $top_vendidos = mysqli_query($conexion, "
     ORDER BY total_vendido DESC
     LIMIT 5
 ");
+
+/* --- PROCESAMIENTO DE DATOS PARA EL GRÁFICO (Simulación con posibilidad de queries reales) --- */
+// Nota: Puedes reemplazar estos arreglos estáticos por consultas SQL con GROUP BY si lo requieres a futuro.
+$datos_semanal = [
+    'labels' => ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+    'data'   => [450000, 320000, 580000, 490000, 850000, 1200000, 950000]
+];
+
+$datos_mensual = [
+    'labels' => ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'],
+    'data'   => [3500000, 4200000, 3800000, 5100000]
+];
+
+$datos_anual = [
+    'labels' => ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
+    'data'   => [15000000, 18200000, 14500000, 19000000, 22000000, 0, 0, 0, 0, 0, 0, 0] // 2026 en curso
+];
 ?>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <div class="container-fluid mt-4">
 
+    <!-- Header / Selector de Usuario -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h1 class="h3 fw-bold text-dark mb-0">Dashboard AMATISTA SGI</h1>
@@ -69,6 +87,7 @@ $top_vendidos = mysqli_query($conexion, "
         </div>
     </div>
 
+    <!-- Indicadores KPI -->
     <div class="row g-4 mb-4">
         <?php 
         $cards = [
@@ -102,12 +121,23 @@ $top_vendidos = mysqli_query($conexion, "
         ?>
     </div>
 
+    <!-- Gráfico Comercial Modificable -->
     <div class="row mb-4">
         <div class="col-12">
             <div class="card border-0 shadow-sm rounded-4 bg-white">
                 <div class="card-body p-4">
-                    <h5 class="fw-bold text-dark mb-3"><i class="bi bi-bezier2 me-2" style="color: #6f42c1;"></i>Flujo Comercial Semanal</h5>
-                    <div style="height: 200px; position: relative;">
+                    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center mb-3 gap-2">
+                        <h5 class="fw-bold text-dark mb-0">
+                            <i class="bi bi-bezier2 me-2" style="color: #6f42c1;"></i>Flujo Comercial
+                        </h5>
+                        <!-- Selectores de período -->
+                        <div class="btn-group p-1 bg-light rounded-pill" role="group" aria-label="Período comercial">
+                            <button type="button" class="btn btn-sm btn-purple-toggle rounded-pill px-3 active" onclick="cambiarPeriodo('semanal', this)">Semanal</button>
+                            <button type="button" class="btn btn-sm btn-purple-toggle rounded-pill px-3" onclick="cambiarPeriodo('mensual', this)">Mensual</button>
+                            <button type="button" class="btn btn-sm btn-purple-toggle rounded-pill px-3" onclick="cambiarPeriodo('anual', this)">Anual</button>
+                        </div>
+                    </div>
+                    <div style="height: 240px; position: relative;">
                         <canvas id="graficoVentas"></canvas>
                     </div>
                 </div>
@@ -115,7 +145,9 @@ $top_vendidos = mysqli_query($conexion, "
         </div>
     </div>
 
+    <!-- Secciones Inferiores (Tablas) -->
     <div class="row g-4 mb-4">
+        <!-- Stock Crítico -->
         <div class="col-md-6">
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 bg-white">
                 <div class="card-header bg-white py-3 border-0">
@@ -152,6 +184,7 @@ $top_vendidos = mysqli_query($conexion, "
             </div>
         </div>
 
+        <!-- Top 5 Modelos -->
         <div class="col-md-6">
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden h-100 bg-white">
                 <div class="card-header bg-white py-3 border-0">
@@ -186,34 +219,108 @@ $top_vendidos = mysqli_query($conexion, "
     </div>
 </div>
 
+<!-- Estilos personalizados para los selectores -->
+<style>
+.btn-purple-toggle {
+    color: #6c757d;
+    border: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+.btn-purple-toggle:hover {
+    color: #6f42c1;
+    background-color: rgba(111, 66, 193, 0.08);
+}
+.btn-purple-toggle.active, .btn-purple-toggle:active {
+    background-color: #6f42c1 !important;
+    color: #ffffff !important;
+    font-weight: bold;
+    box-shadow: 0 2px 4px rgba(111, 66, 193, 0.2);
+}
+</style>
+
 <script>
+// Inyectamos de forma segura los arreglos de PHP a constantes de JavaScript
+$datosGrafico = {
+    semanal: {
+        labels: <?php echo json_encode($datos_semanal['labels']); ?>,
+        data: <?php echo json_encode($datos_semanal['data']); ?>
+    },
+    mensual: {
+        labels: <?php echo json_encode($datos_mensual['labels']); ?>,
+        data: <?php echo json_encode($datos_mensual['data']); ?>
+    },
+    anual: {
+        labels: <?php echo json_encode($datos_anual['labels']); ?>,
+        data: <?php echo json_encode($datos_anual['data']); ?>
+    }
+};
+
 const ctx = document.getElementById('graficoVentas').getContext('2d');
-new Chart(ctx, {
+
+// Inicialización por defecto con los datos semanales
+const miGrafico = new Chart(ctx, {
     type: 'line',
     data: {
-        labels: ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
+        labels: $datosGrafico.semanal.labels,
         datasets: [{
-            label: 'Ventas Semanales',
-            data: [450000, 320000, 580000, 490000, 850000, 1200000, 950000], 
+            label: 'Monto de Ventas',
+            data: $datosGrafico.semanal.data, 
             borderColor: '#6f42c1', 
-            backgroundColor: 'rgba(111, 66, 193, 0.04)',
+            backgroundColor: 'rgba(111, 66, 193, 0.05)',
             tension: 0.35,
             fill: true,
             borderWidth: 2.5,
-            pointRadius: 2,
-            pointHoverRadius: 5
+            pointRadius: 3,
+            pointHoverRadius: 6
         }]
     },
     options: {
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: { 
+            legend: { display: false },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        let label = context.dataset.label || '';
+                        if (label) { label += ': '; }
+                        if (context.parsed.y !== null) {
+                            label += new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(context.parsed.y);
+                        }
+                        return label;
+                    }
+                }
+            }
+        },
         scales: { 
-            y: { grid: { display: false }, ticks: { font: { size: 10 } } },
+            y: { 
+                grid: { color: '#f1f1f1' }, 
+                ticks: { 
+                    font: { size: 10 },
+                    callback: function(value) {
+                        return '$' + value.toLocaleString('es-CO');
+                    }
+                } 
+            },
             x: { grid: { display: false }, ticks: { font: { size: 10 } } }
         }
     }
 });
+
+// Función para alternar el set de datos del gráfico
+function cambiarPeriodo(periodo, elemento) {
+    // Cambiar estado activo de los botones
+    document.querySelectorAll('.btn-purple-toggle').forEach(btn => btn.classList.remove('active'));
+    elemento.classList.add('active');
+    
+    // Mutar los datos internos de la instancia de Chart.js
+    miGrafico.data.labels = $datosGrafico[periodo].labels;
+    miGrafico.data.datasets[0].data = $datosGrafico[periodo].data;
+    
+    // Renderizar la animación de transición con los nuevos valores
+    miGrafico.update();
+}
 </script>
 
 <?php include("includes/footer.php"); ?>
