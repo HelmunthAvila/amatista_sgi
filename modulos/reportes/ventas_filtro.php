@@ -2,15 +2,21 @@
 // Iniciamos sesión al principio para renderizar las notificaciones instantáneas
 session_start();
 
-// 1. Conexión a la base de datos
+// 1. Incluir conexión a la base de datos
 include("../../conexion.php");
 
-// 2. Cargar encabezado del sistema (menú, estilos, navbar)
+// 2. Incluir encabezado del sistema (menú, estilos, estructura)
 include("../../includes/header.php");
 
-// 3. Obtener mes y año actual del servidor
-$mes = date("m");
-$anio = date("Y");
+// Capturar y validar las fechas del formulario o de la URL (para la paginación)
+$fecha_inicio = isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : '';
+$fecha_fin = isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : '';
+
+if (empty($fecha_inicio) || empty($fecha_fin)) {
+    echo "<div class='container mt-4'><div class='alert alert-danger'>Por favor, seleccione un rango de fechas válido.</div></div>";
+    include("../../includes/footer.php");
+    exit;
+}
 
 // --- CONFIGURACIÓN DE LA PAGINACIÓN ---
 $por_pagina = 10;
@@ -18,57 +24,108 @@ $pagina_actual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
 if ($pagina_actual < 1) { $pagina_actual = 1; }
 $offset = ($pagina_actual - 1) * $por_pagina;
 
-// --- CONSULTA PARA CONTAR TOTAL DE VENTAS DEL MES ---
-$query_conteo = "SELECT COUNT(*) as total FROM ventas WHERE MONTH(fecha)='$mes' AND YEAR(fecha)='$anio'";
+// --- CONSULTA PARA CONTAR TOTAL DE REGISTROS FILTRADOS ---
+$query_conteo = "SELECT COUNT(*) as total FROM ventas WHERE fecha BETWEEN '$fecha_inicio 00:00:00' AND '$fecha_fin 23:59:59'";
 $res_conteo = mysqli_query($conexion, $query_conteo);
 $fila_conteo = mysqli_fetch_assoc($res_conteo);
 $total_registros = $fila_conteo['total'];
 $total_paginas = ceil($total_registros / $por_pagina);
 
 /*--------------------------------------------------
-CONSULTA PRINCIPAL: VENTAS DEL MES CON LÍMITES
+CONSULTA PRINCIPAL: VENTAS FILTRADAS CON LÍMITES
 --------------------------------------------------*/
 $ventas = mysqli_query($conexion, "
     SELECT ventas.*, clientes.nombre 
     FROM ventas
     JOIN clientes ON ventas.id_cliente = clientes.id
-    WHERE MONTH(ventas.fecha)='$mes' 
-    AND YEAR(ventas.fecha)='$anio'
+    WHERE ventas.fecha BETWEEN '$fecha_inicio 00:00:00' AND '$fecha_fin 23:59:59'
     ORDER BY ventas.fecha DESC
     LIMIT $por_pagina OFFSET $offset
 ");
 
 if (!$ventas) {
-    die("Error en la consulta de ventas del mes: " . mysqli_error($conexion));
+    die("Error en la consulta de filtro de ventas: " . mysqli_error($conexion));
 }
 
 /*--------------------------------------------------
-CONSULTA: TOTAL DE DINERO VENDIDO EN EL MES (Sin límites de página)
+CONSULTA: TOTAL ACUMULADO DEL RANGO (Sin límites de página)
 --------------------------------------------------*/
-$total_mes_query = mysqli_query($conexion, "SELECT SUM(total) as total_mes FROM ventas WHERE MONTH(fecha)='$mes' AND YEAR(fecha)='$anio'");
-$total_mes_data = mysqli_fetch_assoc($total_mes_query);
-$total_mes = $total_mes_data['total_mes'] ?? 0;
+$total_filtro_query = mysqli_query($conexion, "SELECT SUM(total) as total_rango FROM ventas WHERE fecha BETWEEN '$fecha_inicio 00:00:00' AND '$fecha_fin 23:59:59'");
+$total_filtro_data = mysqli_fetch_assoc($total_filtro_query);
+$total_rango = $total_filtro_data['total_rango'] ?? 0;
 ?>
 
 <style>
-    /* Se conservan los mismos estilos Amatista */
-    :root { --primary-color: #512da8; --primary-hover: #432293; --border-radius-card: 16px; }
-    .btn-amatista-primary { background-color: var(--primary-color) !important; border-color: var(--primary-color) !important; color: #ffffff !important; font-weight: 600; }
-    .btn-amatista-secondary { background-color: #f1f3f5 !important; border: 1px solid #dee2e6 !important; color: #495057 !important; }
-    .card-custom { border-radius: var(--border-radius-card) !important; border: none !important; background-color: #ffffff; }
-    .form-control-custom { border-radius: 10px !important; border: 1px solid #ced4da !important; padding: 0.6rem 1rem; }
-    .table-custom-header { background-color: #f8f9fa !important; color: #495057; font-weight: 600; }
-    .table-hover tbody tr:hover { background-color: #fcfbfe !important; }
-    .pagination .page-link { color: var(--primary-color); border: none; padding: 0.6rem 0.9rem; margin: 0 2px; border-radius: 8px; }
-    .pagination .page-item.active .page-link { background-color: var(--primary-color) !important; color: #fff !important; }
+    :root {
+        --primary-color: #512da8;
+        --primary-hover: #432293;
+        --bg-light-gray: #f8f9fa;
+        --border-radius-card: 16px;
+    }
+
+    .btn-amatista-primary {
+        background-color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+        color: #ffffff !important;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    .btn-amatista-primary:hover {
+        background-color: var(--primary-hover) !important;
+        border-color: var(--primary-hover) !important;
+    }
+    .btn-amatista-secondary {
+        background-color: #f1f3f5 !important;
+        border: 1px solid #dee2e6 !important;
+        color: #495057 !important;
+    }
+
+    .card-custom {
+        border-radius: var(--border-radius-card) !important;
+        border: none !important;
+        background-color: #ffffff;
+    }
+
+    .form-control-custom {
+        border-radius: 10px !important;
+        border: 1px solid #ced4da !important;
+        padding: 0.6rem 1rem;
+    }
+
+    .table-custom-header {
+        background-color: #f8f9fa !important;
+        color: #495057;
+        font-weight: 600;
+    }
+    
+    .table-hover tbody tr:hover {
+        background-color: #fcfbfe !important;
+    }
+
+    /* Paginación Amatista */
+    .pagination .page-link {
+        color: var(--primary-color);
+        border: none;
+        padding: 0.6rem 0.9rem;
+        margin: 0 2px;
+        border-radius: 8px;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: var(--primary-color) !important;
+        color: #fff !important;
+    }
+    .pagination .page-link:hover {
+        background-color: #f0ebfa;
+        color: var(--primary-hover);
+    }
 </style>
 
 <div class="container-fluid px-4 py-3">
 
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
-            <h2 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.5px;">Ventas del Mes</h2>
-            <p class="text-muted small mb-0">Listado consolidado de las ventas facturadas durante el mes en curso.</p>
+            <h2 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.5px;">Resultados del Filtro</h2>
+            <p class="text-muted small mb-0">Ventas reportadas desde el <strong><?php echo $fecha_inicio; ?></strong> hasta el <strong><?php echo $fecha_fin; ?></strong>.</p>
         </div>
     </div>
 
@@ -77,23 +134,23 @@ $total_mes = $total_mes_data['total_mes'] ?? 0;
             <a href="inventario.php" class="btn btn-white bg-white text-dark"><i class="bi bi-box-seam text-primary me-1"></i> Inventario</a>
             <a href="stock_bajo.php" class="btn btn-white bg-white border-start text-dark"><i class="bi bi-exclamation-triangle text-warning me-1"></i> Stock Bajo</a>
             <a href="ventas_dia.php" class="btn btn-white bg-white border-start text-dark"><i class="bi bi-calendar-day text-success me-1"></i> Ventas Día</a>
-            <a href="ventas_mes.php" class="btn btn-amatista-primary active"><i class="bi bi-calendar-month me-1"></i> Ventas Mes</a>
+            <a href="ventas_mes.php" class="btn btn-white bg-white border-start text-dark"><i class="bi bi-calendar-month text-info me-1"></i> Ventas Mes</a>
             <a href="exportar_excel.php" class="btn btn-white bg-white border-start text-dark"><i class="bi bi-file-earmark-excel text-success me-1"></i> Exportar Excel</a>
         </div>
 
         <form method="GET" action="ventas_filtro.php" class="d-flex gap-2 align-items-center">
-            <input type="date" name="fecha_inicio" class="form-control form-control-custom" required>
-            <input type="date" name="fecha_fin" class="form-control form-control-custom" required>
+            <input type="date" name="fecha_inicio" value="<?php echo $fecha_inicio; ?>" class="form-control form-control-custom" required>
+            <input type="date" name="fecha_fin" value="<?php echo $fecha_fin; ?>" class="form-control form-control-custom" required>
             <button type="submit" class="btn btn-amatista-primary rounded-pill px-4 shadow-sm"><i class="bi bi-search me-1"></i> Filtrar</button>
         </form>
     </div>
 
     <div class="row mb-4">
         <div class="col-md-4">
-            <div class="card card-custom shadow-sm border-start border-4 border-success p-2">
+            <div class="card card-custom shadow-sm border-start border-4 border-primary p-2">
                 <div class="card-body">
-                    <h6 class="text-secondary text-uppercase small fw-bold mb-2">Total Facturado este Mes</h6>
-                    <h3 class="fw-bold text-success mb-0">$<?php echo number_format($total_mes, 0, ",", "."); ?></h3>
+                    <h6 class="text-secondary text-uppercase small fw-bold mb-2">Total en este Rango</h6>
+                    <h3 class="fw-bold text-primary mb-0">$<?php echo number_format($total_rango, 0, ",", "."); ?></h3>
                 </div>
             </div>
         </div>
@@ -132,7 +189,7 @@ $total_mes = $total_mes_data['total_mes'] ?? 0;
                     <?php } else { ?>
                         <tr>
                             <td colspan="5" class="text-center py-5 text-muted">
-                                <i class="bi bi-calendar-x display-6 d-block mb-3 text-light"></i>No se registran ventas este mes.
+                                <i class="bi bi-calendar-x display-6 d-block mb-3 text-light"></i>No se encontraron ventas en este rango de fechas.
                             </td>
                         </tr>
                     <?php } ?>
@@ -141,24 +198,24 @@ $total_mes = $total_mes_data['total_mes'] ?? 0;
         </div>
     </div>
 
-    <!-- NAVEGACIÓN DE PAGINACIÓN -->
+    <!-- NAVEGACIÓN DE PAGINACIÓN MANTENIENDO LAS VARIABLES DEL FILTRO -->
     <?php if($total_paginas > 1): ?>
         <div class="d-flex justify-content-between align-items-center px-2">
             <div class="text-muted small">
-                Mostrando página <strong><?php echo $pagina_actual; ?></strong> de <strong><?php echo $total_paginas; ?></strong> (Total de facturas: <?php echo $total_registros; ?>)
+                Mostrando página <strong><?php echo $pagina_actual; ?></strong> de <strong><?php echo $total_paginas; ?></strong> (Total de resultados: <?php echo $total_registros; ?>)
             </div>
             <nav>
                 <ul class="pagination pagination-sm mb-0 shadow-sm rounded-3 bg-white p-1">
                     <li class="page-item <?php echo ($pagina_actual <= 1) ? 'disabled' : ''; ?>">
-                        <a class="page-link" href="?pagina=<?php echo $pagina_actual - 1; ?>">&laquo; Anterior</a>
+                        <a class="page-link" href="?fecha_inicio=<?php echo $fecha_inicio; ?>&fecha_fin=<?php echo $fecha_fin; ?>&pagina=<?php echo $pagina_actual - 1; ?>">&laquo; Anterior</a>
                     </li>
                     <?php for($i = 1; $i <= $total_paginas; $i++): ?>
                         <li class="page-item <?php echo ($pagina_actual == $i) ? 'active' : ''; ?>">
-                            <a class="page-link" href="?pagina=<?php echo $i; ?>"><?php echo $i; ?></a>
+                            <a class="page-link" href="?fecha_inicio=<?php echo $fecha_inicio; ?>&fecha_fin=<?php echo $fecha_fin; ?>&pagina=<?php echo $i; ?>"><?php echo $i; ?></a>
                         </li>
                     <?php endfor; ?>
                     <li class="page-item <?php echo ($pagina_actual >= $total_paginas) ? 'disabled' : ''; ?>">
-                        <a class="page-link" href="?pagina=<?php echo $pagina_actual + 1; ?>">Siguiente &raquo;</a>
+                        <a class="page-link" href="?fecha_inicio=<?php echo $fecha_inicio; ?>&fecha_fin=<?php echo $fecha_fin; ?>&pagina=<?php echo $pagina_actual + 1; ?>">Siguiente &raquo;</a>
                     </li>
                 </ul>
             </nav>
