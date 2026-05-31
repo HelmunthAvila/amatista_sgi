@@ -56,8 +56,11 @@ try {
     mysqli_commit($conexion);
     unset($_SESSION['carrito']);
 
-    $_SESSION['alerta'] = ['tipo' => 'success', 'mensaje' => "¡Venta <strong>#{$id_venta}</strong> registrada exitosamente! Listo para despacho comercial."];
-    header("Location: listar.php");
+    // REDIRECCIÓN DIRECTA A POS PARA LEVANTAR EL SCRIPT DE IMPRESIÓN
+    $_SESSION['alerta'] = ['tipo' => 'success', 'mensaje' => "¡Venta <strong>#{$id_venta}</strong> registrada exitosamente! El ticket de impresión se abrirá automáticamente."];
+    $_SESSION['imprimir_ticket_id'] = $id_venta; // Variable de enganche para pos.php
+    
+    header("Location: pos.php");
     exit();
 
 } catch (Exception $e) {

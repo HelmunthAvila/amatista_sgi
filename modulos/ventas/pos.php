@@ -86,7 +86,6 @@ if(!isset($_SESSION['carrito'])){
 
 <div class="container-fluid px-4 py-3">
 
-    <!-- ALERTAS -->
     <?php if(isset($_SESSION['alerta'])): ?>
         <div class="alert alert-<?php echo $_SESSION['alerta']['tipo']; ?> alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4 p-3" role="alert">
             <div class="d-flex align-items-center">
@@ -95,10 +94,18 @@ if(!isset($_SESSION['carrito'])){
             </div>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
+        
+        <?php if(isset($_SESSION['imprimir_ticket_id'])): ?>
+            <script>
+                // Abre el documento de impresión en un popup emergente adaptado a tiqueteras térmicas
+                window.open('ticket.php?id=<?php echo $_SESSION['imprimir_ticket_id']; ?>', '_blank', 'width=320,height=600,menubar=no,scrollbars=yes,status=no,resizable=yes');
+            </script>
+            <?php unset($_SESSION['imprimir_ticket_id']); ?>
+        <?php endif; ?>
+
         <?php unset($_SESSION['alerta']); ?>
     <?php endif; ?>
 
-    <!-- Encabezado -->
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.5px;">Terminal Punto de Venta (POS)</h2>
@@ -110,7 +117,6 @@ if(!isset($_SESSION['carrito'])){
     </div>
 
     <div class="row g-4">
-        <!-- AGREGAR PRODUCTOS -->
         <div class="col-md-4">
             <div class="card card-custom shadow-sm mb-4">
                 <div class="card-body p-4">
@@ -141,7 +147,6 @@ if(!isset($_SESSION['carrito'])){
             </div>
         </div>
 
-        <!-- LISTA DEL CARRITO -->
         <div class="col-md-8">
             <div class="card card-custom shadow-sm overflow-hidden d-flex flex-column h-100">
                 <div class="table-responsive flex-grow-1">
@@ -190,7 +195,6 @@ if(!isset($_SESSION['carrito'])){
                     </table>
                 </div>
 
-                <!-- LIQUIDACIÓN -->
                 <div class="card-footer bg-white p-4 border-top-0 mt-auto">
                     <form action="guardar_venta.php" method="POST">
                         <div class="row align-items-center">
