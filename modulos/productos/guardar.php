@@ -1,9 +1,11 @@
 <?php
+// Inicia la sesión para administrar flujos informativos
+session_start();
+
 // Incluye el archivo de conexión a la base de datos
 include("../../conexion.php");
 
-// Recibe los datos enviados desde el formulario agregar.php
-// Se limpian los campos de texto para evitar inyección SQL
+// Recibe y limpia los campos de texto enviados para evitar inyecciones SQL
 $nombre   = mysqli_real_escape_string($conexion, $_POST['nombre']);
 $marca    = mysqli_real_escape_string($conexion, $_POST['marca']);
 $talla    = mysqli_real_escape_string($conexion, $_POST['talla']);
@@ -17,16 +19,20 @@ $stock    = $_POST['stock'];
 $sql = "INSERT INTO productos (nombre, marca, talla, color, precio, stock) 
         VALUES ('$nombre', '$marca', '$talla', '$color', '$precio', '$stock')";
 
-// Ejecuta la consulta y verifica si el registro fue exitoso
+// Ejecuta la consulta y define alertas correspondientes
 if (mysqli_query($conexion, $sql)) {
-
-    // Si se guarda correctamente redirige al listado de productos
-    header("Location: listar.php?res=guardado");
-
+    $_SESSION['alerta'] = [
+        'tipo' => 'success',
+        'mensaje' => '<strong>¡Producto agregado!</strong> El modelo <strong>"' . $nombre . '"</strong> se registró correctamente en el inventario.'
+    ];
 } else {
-
-    // Si ocurre un error muestra el mensaje técnico
-    echo "Error al guardar el producto: " . mysqli_error($conexion);
-
+    $_SESSION['alerta'] = [
+        'tipo' => 'danger',
+        'mensaje' => '<strong>Error al agregar:</strong> No se pudo registrar el modelo. ' . mysqli_error($conexion)
+    ];
 }
+
+// Redirección al listado principal
+header("Location: listar.php");
+exit();
 ?>

@@ -1,35 +1,34 @@
 <?php
+// Iniciamos sesión para interactuar con las notificaciones
+session_start();
 
-// 1. Incluir el archivo de conexión a la base de datos
+// Incluir el archivo de conexión a la base de datos
 include("../../conexion.php");
 
-// 2. Verificar que el ID del proveedor fue enviado por la URL
+// Verificar que el ID del proveedor fue enviado por la URL
 if (isset($_GET['id'])) {
 
-    // Limpiar el ID recibido para evitar inyección SQL
+    // Limpiar el ID recibido
     $id = mysqli_real_escape_string($conexion, $_GET['id']);
 
-    // 3. Sentencia SQL para eliminar el proveedor de la tabla proveedores
+    // Sentencia SQL para eliminar el proveedor
     $sql = "DELETE FROM proveedores WHERE id = '$id'";
 
-    // 4. Ejecutar la consulta de eliminación
+    // Ejecutar la consulta de eliminación
     if (mysqli_query($conexion, $sql)) {
-
-        // Si la eliminación fue exitosa, redirige al listado con mensaje de confirmación
-        header("Location: listar.php?msg=eliminado");
-
+        $_SESSION['alerta'] = [
+            'tipo' => 'success',
+            'mensaje' => '<strong>¡Eliminado!</strong> El proveedor ha sido retirado del SGI de forma exitosa.'
+        ];
     } else {
-
-        // Si ocurre un error (por ejemplo relaciones con otras tablas), mostrar mensaje
-        echo "Error al eliminar: " . mysqli_error($conexion);
-
+        $_SESSION['alerta'] = [
+            'tipo' => 'danger',
+            'mensaje' => '<strong>Error crítico:</strong> El proveedor no puede ser eliminado porque tiene productos o compras vinculadas en el inventario.'
+        ];
     }
-
-} else {
-
-    // 5. Si no se recibe el ID, redirigir nuevamente al listado
-    header("Location: listar.php");
-
 }
 
+// Redirigir nuevamente al listado maestro
+header("Location: listar.php");
+exit();
 ?>

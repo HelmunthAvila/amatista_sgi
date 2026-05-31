@@ -1,4 +1,7 @@
 <?php
+// Iniciamos sesión para mandar mensajes fluidos
+session_start();
+
 // Incluye el archivo de conexión a la base de datos
 include("../../conexion.php");
 
@@ -8,26 +11,35 @@ if (isset($_GET['id'])) {
     // Limpia el ID recibido para evitar inyección SQL
     $id = mysqli_real_escape_string($conexion, $_GET['id']);
 
-    // Ejecuta la consulta SQL para eliminar el producto de la tabla productos
+    // Consultamos el nombre antes de eliminarlo para el mensaje informativo personalizado
+    $buscar_producto = mysqli_query($conexion, "SELECT nombre FROM productos WHERE id = $id");
+    $resultado = mysqli_fetch_assoc($buscar_producto);
+    $nombre_producto = $resultado ? $resultado['nombre'] : 'Desconocido';
+
+    // Ejecuta la consulta SQL para eliminar el producto
     $query = mysqli_query($conexion, "DELETE FROM productos WHERE id = $id");
 
-    // Verifica si la eliminación fue exitosa
+    // Verifica si la eliminación fue exitosa e inyecta la alerta en sesión
     if ($query) {
-
-        // Redirige al listado de productos mostrando mensaje de eliminación exitosa
-        header("Location: listar.php?msj=eliminado");
-
+        $_SESSION['alerta'] = [
+            'tipo' => 'success',
+            'mensaje' => '<strong>¡Producto eliminado!</strong> El modelo <strong>"' . $nombre_producto . '"</strong> fue removido del inventario.'
+        ];
     } else {
-
-        // Muestra error si el producto no se puede eliminar (por ejemplo si está relacionado con ventas)
-        echo "Error: No se pudo eliminar el producto. " . mysqli_error($conexion);
-
+        $_SESSION['alerta'] = [
+            'tipo' => 'danger',
+            'mensaje' => '<strong>Error al eliminar:</strong> El modelo <strong>"' . $nombre_producto . '"</strong> tiene facturas asociadas en el POS y no se puede borrar.'
+        ];
     }
 
 } else {
-
-    // Si no se envía un ID válido, redirige nuevamente al listado
-    header("Location: listar.php");
-
+    $_SESSION['alerta'] = [
+        'tipo' => 'danger',
+        'mensaje' => '<strong>Error:</strong> No se especificó un ID de producto válido.'
+    ];
 }
+
+// Redirección al módulo maestro
+header("Location: listar.php");
+exit();
 ?>

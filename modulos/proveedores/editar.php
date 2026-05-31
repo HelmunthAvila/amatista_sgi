@@ -1,142 +1,127 @@
 <?php
-// 1. Inclusión del archivo de conexión a la base de datos y del encabezado del sistema
+// Incluir el archivo de conexión a la base de datos y el encabezado del sistema
 include("../../conexion.php");
 include("../../includes/header.php");
 
-// 2. Obtener el ID del proveedor enviado por URL y consultar los datos actuales
+// Obtener el ID del proveedor enviado por URL de forma segura
 if (isset($_GET['id'])) {
 
-    // Limpieza del ID para evitar inyección SQL
     $id = mysqli_real_escape_string($conexion, $_GET['id']);
 
     // Consulta para obtener los datos del proveedor
     $consulta = mysqli_query($conexion, "SELECT * FROM proveedores WHERE id = '$id'");
-
-    // Convertir el resultado en un arreglo
     $p = mysqli_fetch_array($consulta);
 
-    // Si el proveedor no existe, redirige al listado
     if (!$p) { 
         header("Location: listar.php"); 
+        exit();
     }
 
 } else {
-
-    // Si no se recibe el ID, regresar al listado
     header("Location: listar.php");
-
+    exit();
 }
 ?>
 
-<!-- Contenedor principal -->
-<div class="container-fluid">
+<style>
+    :root {
+        --primary-color: #512da8;
+        --primary-hover: #432293;
+        --border-radius-card: 16px;
+    }
+    .btn-amatista-primary {
+        background-color: var(--primary-color) !important;
+        border-color: var(--primary-color) !important;
+        color: #ffffff !important;
+        font-weight: 600;
+        transition: all 0.2s ease;
+    }
+    .btn-amatista-primary:hover {
+        background-color: var(--primary-hover) !important;
+        border-color: var(--primary-hover) !important;
+        transform: translateY(-1px);
+    }
+    .card-custom {
+        border-radius: var(--border-radius-card) !important;
+        border: none !important;
+        background-color: #ffffff;
+    }
+    .form-control-custom {
+        border-radius: 10px !important;
+        border: 1px solid #ced4da !important;
+        padding: 0.6rem 1rem;
+    }
+    .form-control-custom:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 0.25rem rgba(81, 45, 168, 0.15) !important;
+    }
+</style>
 
-    <!-- Título del módulo -->
+<div class="container-fluid px-4 py-3">
+
     <div class="mb-4">
-        <h2 class="fw-bold mb-0 text-dark">Editar Proveedor</h2>
+        <a href="listar.php" class="btn btn-link text-decoration-none text-muted p-0 mb-2 small fw-semibold">
+            <i class="bi bi-arrow-left me-1"></i> Volver al listado
+        </a>
+        <h2 class="fw-bold mb-0 text-dark" style="letter-spacing: -0.5px;">Editar Proveedor</h2>
         <p class="text-muted small">Actualiza la información de contacto o la empresa proveedora.</p>
     </div>
 
-    <!-- Distribución en columnas -->
     <div class="row">
+        <div class="col-xl-5 col-lg-7">
+            <div class="card card-custom shadow-sm p-4">
+                <form action="actualizar.php" method="POST">
 
-        <!-- Columna del formulario -->
-        <div class="col-md-6">
+                    <input type="hidden" name="id" value="<?php echo $p['id']; ?>">
 
-            <!-- Tarjeta visual -->
-            <div class="card border-0 shadow-sm rounded-4">
-
-                <!-- Cuerpo de la tarjeta -->
-                <div class="card-body p-4">
-
-                    <!-- Formulario que envía datos al archivo actualizar.php -->
-                    <form action="actualizar.php" method="POST">
-
-                        <!-- Campo oculto que guarda el ID del proveedor -->
-                        <input type="hidden" name="id" value="<?php echo $p['id']; ?>">
-
-                        <!-- Campo para editar nombre del contacto -->
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-muted small text-uppercase">Nombre de Contacto</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-0">
-                                    <i class="bi bi-person"></i>
-                                </span>
-                                <input type="text" name="nombre" class="form-control bg-light border-0" 
-                                       value="<?php echo $p['nombre']; ?>" required>
-                            </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary text-uppercase">Empresa / Fábrica</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border text-muted"><i class="bi bi-building"></i></span>
+                            <input type="text" name="empresa" class="form-control form-control-custom" style="border-radius: 0 10px 10px 0 !important;"
+                                   value="<?php echo htmlspecialchars($p['empresa']); ?>" required>
                         </div>
+                    </div>
 
-                        <!-- Campo para editar teléfono -->
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-muted small text-uppercase">Teléfono</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-0">
-                                    <i class="bi bi-telephone"></i>
-                                </span>
-                                <input type="text" name="telefono" class="form-control bg-light border-0" 
-                                       value="<?php echo $p['telefono']; ?>" required>
-                            </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold text-secondary text-uppercase">Nombre de Contacto</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border text-muted"><i class="bi bi-person"></i></span>
+                            <input type="text" name="nombre" class="form-control form-control-custom" style="border-radius: 0 10px 10px 0 !important;"
+                                   value="<?php echo htmlspecialchars($p['nombre']); ?>" required>
                         </div>
+                    </div>
 
-                        <!-- Campo para editar empresa o fábrica -->
-                        <div class="mb-4">
-                            <label class="form-label fw-bold text-muted small text-uppercase">Empresa / Fábrica</label>
-                            <div class="input-group">
-                                <span class="input-group-text bg-light border-0">
-                                    <i class="bi bi-building"></i>
-                                </span>
-                                <input type="text" name="empresa" class="form-control bg-light border-0" 
-                                       value="<?php echo $p['empresa']; ?>" required>
-                            </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-semibold text-secondary text-uppercase">Teléfono</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border text-muted"><i class="bi bi-telephone"></i></span>
+                            <input type="text" name="telefono" class="form-control form-control-custom" style="border-radius: 0 10px 10px 0 !important;"
+                                   value="<?php echo htmlspecialchars($p['telefono']); ?>" required>
                         </div>
+                    </div>
 
-                        <!-- Botones de acción -->
-                        <div class="d-flex gap-2">
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-amatista-primary rounded-pill px-4 py-2 shadow-sm">
+                            <i class="bi bi-check-lg me-2"></i>Actualizar Datos
+                        </button>
+                        <a href="listar.php" class="btn btn-light rounded-pill px-4 py-2 border text-muted small">Cancelar</a>
+                    </div>
 
-                            <!-- Botón para actualizar los datos -->
-                            <button type="submit" class="btn btn-primary rounded-pill px-4 shadow-sm">
-                                <i class="bi bi-check-lg me-2"></i>Actualizar Datos
-                            </button>
-
-                            <!-- Botón para cancelar y volver al listado -->
-                            <a href="listar.php" class="btn btn-light rounded-pill px-4">Cancelar</a>
-
-                        </div>
-
-                    </form>
-
-                </div>
+                </form>
             </div>
         </div>
         
-        <!-- Columna de información o ayuda -->
-        <div class="col-md-4">
-
-            <!-- Tarjeta informativa -->
-            <div class="card border-0 bg-primary text-white rounded-4 shadow-sm h-100">
-
-                <div class="card-body p-4 d-flex flex-column justify-content-center text-center">
-
-                    <!-- Icono informativo -->
-                    <i class="bi bi-info-circle mb-3" style="font-size: 2rem;"></i>
-
-                    <!-- Título del consejo -->
-                    <h5 class="fw-bold">Consejo de Gestión</h5>
-
-                    <!-- Texto de recomendación -->
-                    <p class="small opacity-75">
-                        Mantener los datos de contacto actualizados asegura una comunicación fluida con tus fabricantes de calzado.
-                    </p>
-
-                </div>
+        <div class="col-xl-4 col-lg-5 mt-4 mt-lg-0">
+            <div class="card card-custom text-white shadow-sm h-100 p-4 text-center d-flex flex-column justify-content-center" style="background-color: var(--primary-color) !important;">
+                <i class="bi bi-info-circle mb-3" style="font-size: 2.5rem; opacity: 0.9;"></i>
+                <h5 class="fw-bold mb-2">Consejo de Gestión</h5>
+                <p class="small mb-0 opacity-75">
+                    Mantener los datos de contacto actualizados asegura una comunicación fluida con tus fabricantes de calzado.
+                </p>
             </div>
-
         </div>
     </div>
 </div>
 
-<?php 
-// 3. Inclusión del pie de página del sistema
-include("../../includes/footer.php"); 
-?>
+<?php include("../../includes/footer.php"); ?>
