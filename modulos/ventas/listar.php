@@ -3,9 +3,38 @@ session_start();
 include("../../conexion.php");
 include("../../includes/header.php");
 
+// 1. Configurar la cantidad de registros por página
+$por_pagina = 10;
+
+// 2. Determinar la página actual
+$pagina_actual = isset($_GET['pagina']) ? (int)$_GET['pagina'] : 1;
+if ($pagina_actual < 1) { $pagina_actual = 1; }
+
+// 3. Calcular el offset (inicio del límite para SQL)
+$offset = ($pagina_actual - 1) * $por_pagina;
+
+// Filtros de fecha
 $fecha_inicio = $_GET['fecha_inicio'] ?? '';
 $fecha_fin = $_GET['fecha_fin'] ?? '';
 
+// --- CONSULTA PARA CONTAR EL TOTAL DE REGISTROS (Necesario para la paginación) ---
+$query_conteo = "SELECT COUNT(*) as total_registros 
+                 FROM ventas v
+                 INNER JOIN clientes c ON v.id_cliente = c.id
+                 WHERE 1=1";
+
+if(!empty($fecha_inicio)){ $query_conteo .= " AND DATE(v.fecha) >= '$fecha_inicio'"; }
+if(!empty($fecha_fin)){ $query_conteo .= " AND DATE(v.fecha) <= '$fecha_fin'"; }
+
+$resultado_conteo = mysqli_query($conexion, $query_conteo);
+$fila_conteo = mysqli_fetch_assoc($resultado_conteo);
+$total_registros = $fila_conteo['total_registros'];
+
+// Calcular el total de páginas necesarias
+$total_paginas = ceil($total_registros / $por_pagina);
+
+
+// --- CONSULTA PRINCIPAL CON LIMIT Y OFFSET ---
 $query = "SELECT v.id, v.fecha, v.total, c.nombre as cliente 
           FROM ventas v
           INNER JOIN clientes c ON v.id_cliente = c.id
@@ -14,10 +43,15 @@ $query = "SELECT v.id, v.fecha, v.total, c.nombre as cliente
 if(!empty($fecha_inicio)){ $query .= " AND DATE(v.fecha) >= '$fecha_inicio'"; }
 if(!empty($fecha_fin)){ $query .= " AND DATE(v.fecha) <= '$fecha_fin'"; }
 
-$query .= " ORDER BY v.fecha DESC";
+$query .= " ORDER BY v.fecha DESC LIMIT $por_pagina OFFSET $offset";
 $ventas = mysqli_query($conexion, $query);
 
 if(!$ventas){ die("Error en consulta: ".mysqli_error($conexion)); }
+
+// Conservar los filtros activos al cambiar de página
+$params_busqueda = "";
+if(!empty($fecha_inicio)){ $params_busqueda .= "&fecha_inicio=$fecha_inicio"; }
+if(!empty($fecha_fin)){ $params_busqueda .= "&fecha_fin=$fecha_fin"; }
 ?>
 
 <style>
@@ -54,10 +88,26 @@ if(!$ventas){ die("Error en consulta: ".mysqli_error($conexion)); }
     }
     .form-control-custom { border-radius: 10px !important; padding: 0.6rem 1rem; }
     .table-custom-header { background-color: #f8f9fa !important; color: #495057; font-weight: 600; }
+    
+    /* Estilos personalizados para la paginación Amatista */
+    .pagination .page-link {
+        color: var(--primary-color);
+        border: none;
+        padding: 0.6rem 0.9rem;
+        margin: 0 2px;
+        border-radius: 8px;
+    }
+    .pagination .page-item.active .page-link {
+        background-color: var(--primary-color) !important;
+        color: #fff !important;
+    }
+    .pagination .page-link:hover {
+        background-color: var(--bg-badge-id);
+        color: var(--primary-hover);
+    }
 </style>
 
 <div class="container-fluid px-4 py-3">
-    <!-- ALERTAS -->
     <?php if(isset($_SESSION['alerta'])): ?>
         <div class="alert alert-<?php echo $_SESSION['alerta']['tipo']; ?> alert-dismissible fade show border-0 shadow-sm rounded-3 mb-4 p-3" role="alert">
             <div class="d-flex align-items-center">
@@ -79,7 +129,6 @@ if(!$ventas){ die("Error en consulta: ".mysqli_error($conexion)); }
         </a>
     </div>
 
-    <!-- FILTROS -->
     <div class="card card-custom shadow-sm mb-4">
         <div class="card-body p-4">
             <form method="GET">
@@ -105,8 +154,7 @@ if(!$ventas){ die("Error en consulta: ".mysqli_error($conexion)); }
         </div>
     </div>
 
-    <!-- TABLA HISTORIAL -->
-    <div class="card card-custom shadow-sm overflow-hidden">
+    <div class="card card-custom shadow-sm overflow-hidden mb-4">
         <div class="table-responsive">
             <table class="table align-middle mb-0 table-hover">
                 <thead>
@@ -152,6 +200,43 @@ if(!$ventas){ die("Error en consulta: ".mysqli_error($conexion)); }
             </table>
         </div>
     </div>
+
+    <?php if($total_paginas > 1): ?>
+        <div class="d-flex justify-content-between align-items-center px-2">
+            <div class="text-muted small">
+                Mostrando página <strong><?php echo $pagina_actual; ?></strong> de <strong><?php echo $total_paginas; ?></strong> (Total de registros: <?php echo $total_registros; ?>)
+            </div>
+            <nav aria-label="Navegación de historial">
+                <ul class="pagination pagination-sm mb-0 shadow-sm rounded-3 bg-white p-1">
+                    <li class="page-item <?php echo ($pagina_actual <= 1) ? 'disabled' : ''; ?>">
+                        <a class="page-link" href="?pagina=<?php echo $pagina_actual - 1 . $params_busqueda; ?>" aria-label="Previous">
+                            <span aria-hidden="true">&laquo; Anterior</span>
+                        </a>
+                    </li>
+
+                    <?php 
+                    // Limitar el número de páginas visibles si hay demasiadas
+                    $rango = 2; 
+                    for($i = 1; $i <= $total_paginas; $i++): 
+                        if ($i == 1 || $i == $total_paginas || ($i >= $pagina_actual - $rango && $i <= $pagina_actual + $rango)):
+                    ?>
+                        <li class="page-item <?php echo ($pagina_actual == $i) ? 'active' : ''; ?>">
+                            <a class="page-link" href="?pagina=<?php echo $i . $params_busqueda; ?>"><?php echo $i; ?></a>
+                        </li>
+                    <?php 
+                        endif;
+                    endfor; 
+                    ?>
+
+                    <li class="page-item <?php echo ($pagina_actual >= $total_paginas) ? 'disabled' : ''; ?>">
+                        <a class="page-link" href="?pagina=<?php echo $pagina_actual + 1 . $params_busqueda; ?>" aria-label="Next">
+                            <span aria-hidden="true">Siguiente &raquo;</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    <?php endif; ?>
 </div>
 
 <?php include("../../includes/footer.php"); ?>
