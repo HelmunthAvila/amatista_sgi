@@ -19,8 +19,7 @@ if(!$venta){
     die("La venta especificada no existe.");
 }
 
-// 3. SOLUCIÓN AQUÍ: Seleccionamos d.precio_unitario renombrándolo 'as precio' 
-// para que coincida exactamente con la línea 72 de tu tabla
+// 3. Selección con alias coincidente para el bucle
 $detalle = mysqli_query($conexion, "SELECT d.cantidad, d.precio_unitario as precio, p.nombre 
     FROM detalle_venta d 
     INNER JOIN productos p ON d.id_producto = p.id 
@@ -48,7 +47,8 @@ if(!$detalle){
         @media print { .no-print { display: none; } }
     </style>
 </head>
-<body onload="window.print()"> <div class="text-center header">
+<body>
+    <div class="text-center header">
         <h2 style="margin: 0; font-size: 18px;">AMATISTA SGI</h2>
         <p>Calzado y Estilo Profesional</p>
         <p>Nit: 123456789-0</p>
@@ -78,7 +78,7 @@ if(!$detalle){
             <?php 
             $total_acumulado = 0;
             while($d = mysqli_fetch_array($detalle)){ 
-                $subtotal_item = $d['cantidad'] * $d['precio']; // Uso de columna 'precio'
+                $subtotal_item = $d['cantidad'] * $d['precio'];
                 $total_acumulado += $subtotal_item;
             ?>
             <tr>
@@ -111,5 +111,14 @@ if(!$detalle){
         </a>
     </div>
 
+    <script>
+        window.onload = function() {
+            window.print();
+            // Cierra la pestaña secundaria automáticamente después de completar o cancelar la cola
+            setTimeout(function() {
+                window.close();
+            }, 1000);
+        }
+    </script>
 </body>
 </html>
