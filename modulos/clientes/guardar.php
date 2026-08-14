@@ -4,6 +4,13 @@ include("../../includes/sesion.php");
 
 // Incluye el archivo de conexión a la base de datos
 include("../../conexion.php");
+// Verificación CSRF (AM-008)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && !csrf_verificar()) {
+    $_SESSION['alerta'] = ['tipo' => 'danger', 'mensaje' => 'La sesión expiró. Recarga la página e intenta nuevamente.'];
+    header("Location: listar.php");
+    exit();
+}
+
 
 // Recibe y limpia los datos enviados desde el formulario agregar.php
 $nombre   = mysqli_real_escape_string($conexion, $_POST['nombre']);

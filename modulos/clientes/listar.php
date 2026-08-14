@@ -252,10 +252,13 @@ if(!empty($busqueda)){ $params_busqueda .= "&busqueda=" . urlencode($busqueda); 
                                     <a href="editar.php?id=<?php echo $c['id']; ?>" class="btn btn-sm btn-white bg-white border-end" title="Editar Cliente">
                                         <i class="bi bi-pencil-square text-primary fs-6"></i>
                                     </a>
-                                    <a href="eliminar.php?id=<?php echo $c['id']; ?>" class="btn btn-sm btn-white bg-white" 
-                                       onclick="return confirm('¿Está seguro de eliminar a este cliente de Amatista SGI?')" title="Eliminar Cliente">
-                                        <i class="bi bi-trash3 text-danger fs-6"></i>
-                                    </a>
+                                    <form method="POST" action="eliminar.php" class="d-inline" onsubmit="return confirm('¿Está seguro de eliminar a este cliente de Amatista SGI?')">
+                                        <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+                                        <input type="hidden" name="id" value="<?php echo $c['id']; ?>">
+                                        <button type="submit" class="btn btn-sm btn-white bg-white" title="Eliminar Cliente">
+                                            <i class="bi bi-trash3 text-danger fs-6"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>

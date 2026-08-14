@@ -315,10 +315,13 @@ if(!empty($filtro_stock)){ $params_busqueda .= "&filtro_stock=" . urlencode($fil
                                     <a href="editar.php?id=<?php echo $p['id']; ?>" class="btn btn-sm btn-white bg-white border-end" title="Editar Par">
                                         <i class="bi bi-pencil-square text-primary fs-6"></i>
                                     </a>
-                                    <a href="eliminar.php?id=<?php echo $p['id']; ?>" class="btn btn-sm btn-white bg-white" 
-                                       onclick="return confirm('¿Está seguro de eliminar este producto de Amatista SGI?')" title="Eliminar Par">
-                                        <i class="bi bi-trash3 text-danger fs-6"></i>
-                                    </a>
+                                    <form method="POST" action="eliminar.php" class="d-inline" onsubmit="return confirm('¿Está seguro de eliminar este producto de Amatista SGI?')">
+                                        <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+                                        <input type="hidden" name="id" value="<?php echo $p['id']; ?>">
+                                        <button type="submit" class="btn btn-sm btn-white bg-white" title="Eliminar Par">
+                                            <i class="bi bi-trash3 text-danger fs-6"></i>
+                                        </button>
+                                    </form>
                                 </div>
                             </td>
                         </tr>

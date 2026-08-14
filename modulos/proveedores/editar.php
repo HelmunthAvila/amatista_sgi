@@ -72,6 +72,8 @@ if (isset($_GET['id'])) {
         <div class="col-xl-5 col-lg-7">
             <div class="card card-custom shadow-sm p-4">
                 <form action="actualizar.php" method="POST">
+    <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+
 
                     <input type="hidden" name="id" value="<?php echo $p['id']; ?>">
 

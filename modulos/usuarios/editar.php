@@ -1,5 +1,6 @@
 <?php
 include("../../includes/sesion.php");
+requiere_rol('admin');
 
 // 1. Incluir conexión a la base de datos
 include("../../conexion.php");
@@ -48,6 +49,8 @@ $u = mysqli_fetch_array($resultado);
                 Los datos se envían a actualizar.php
                 -->
                 <form action="actualizar.php" method="POST">
+    <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+
 
                     <!-- ID oculto del usuario -->
                     <input type="hidden" name="id" value="<?php echo $u['id']; ?>">

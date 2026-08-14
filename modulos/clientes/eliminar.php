@@ -4,12 +4,19 @@ include("../../includes/sesion.php");
 
 // Incluye el archivo de conexión a la base de datos
 include("../../conexion.php");
+// Verificación CSRF (AM-008)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && !csrf_verificar()) {
+    $_SESSION['alerta'] = ['tipo' => 'danger', 'mensaje' => 'La sesión expiró. Recarga la página e intenta nuevamente.'];
+    header("Location: listar.php");
+    exit();
+}
+
 
 // Verifica que se haya recibido el ID del cliente mediante la URL
-if (isset($_GET['id'])) {
+if (isset($_POST['id'])) {
 
     // Limpia el valor del ID
-    $id = mysqli_real_escape_string($conexion, $_GET['id']);
+    $id = mysqli_real_escape_string($conexion, $_POST['id']);
 
     // Consulta SQL para eliminar el cliente seleccionado
     $sql = "DELETE FROM clientes WHERE id = '$id'";

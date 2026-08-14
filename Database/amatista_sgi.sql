@@ -793,9 +793,9 @@ CREATE TABLE IF NOT EXISTS `usuarios` (
 --
 
 INSERT INTO `usuarios` (`id`, `nombre`, `usuario`, `password`, `rol`, `estado`, `fecha_registro`) VALUES
-(1, 'Helmunth Avila', 'helmunth', 'e10adc3949ba59abbe56e057f20f883e', 'admin', 1, '2026-03-10 09:52:23'),
-(2, 'Maria Gonzalez', 'Maju', 'e10adc3949ba59abbe56e057f20f883e', 'cajero', 1, '2026-03-10 09:52:23'),
-(3, 'Carlos Perez', 'Paola', 'e10adc3949ba59abbe56e057f20f883e', 'cajero', 1, '2026-03-10 09:52:23');
+(1, 'Helmunth Avila', 'helmunth', '$2y$10$is6mecs4u3bWeB2TfwkI0.wC3XGmYSkpMAEKPiTwKsNZpXKxV2ORi', 'admin', 1, '2026-03-10 09:52:23'),
+(2, 'Maria Gonzalez', 'Maju', '$2y$10$is6mecs4u3bWeB2TfwkI0.wC3XGmYSkpMAEKPiTwKsNZpXKxV2ORi', 'cajero', 1, '2026-03-10 09:52:23'),
+(3, 'Carlos Perez', 'Paola', '$2y$10$is6mecs4u3bWeB2TfwkI0.wC3XGmYSkpMAEKPiTwKsNZpXKxV2ORi', 'cajero', 1, '2026-03-10 09:52:23');
 
 -- --------------------------------------------------------
 
