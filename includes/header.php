@@ -13,6 +13,9 @@ if (!isset($_SESSION['id_usuario'])) {
     header("Location: " . $base . "login.php");
     exit();
 }
+
+// Menú por rol: el cajero únicamente opera en el Punto de Venta (POS)
+$es_admin = isset($_SESSION['rol']) && $_SESSION['rol'] === 'admin';
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -147,10 +150,12 @@ if (!isset($_SESSION['id_usuario'])) {
         </div>
 
         <div class="nav flex-column">
+            <?php if ($es_admin): ?>
             <!-- Dashboard -->
             <a href="<?= $base ?>dashboard.php" class="nav-link <?= (basename($archivo_actual) == 'dashboard.php') ? 'active' : '' ?>">
                 <i class="bi bi-grid-1x2 me-3"></i> Dashboard
             </a>
+            <?php endif; ?>
 
             <div class="menu-category">Operaciones</div>
 
@@ -158,7 +163,8 @@ if (!isset($_SESSION['id_usuario'])) {
             <a href="<?= $base ?>modulos/ventas/pos.php" class="nav-link <?= (strpos($archivo_actual, 'ventas/') !== false) ? 'active' : '' ?>">
                 <i class="bi bi-calculator me-3"></i> Ventas (POS)
             </a>
-            
+
+            <?php if ($es_admin): ?>
             <!-- Inventario -->
             <a href="<?= $base ?>modulos/productos/listar.php" class="nav-link <?= (strpos($archivo_actual, 'productos/') !== false) ? 'active' : '' ?>">
                 <i class="bi bi-box-seam me-3"></i> Inventario
@@ -182,6 +188,7 @@ if (!isset($_SESSION['id_usuario'])) {
             <a href="<?= $base ?>modulos/reportes/inventario.php" class="nav-link <?= (strpos($archivo_actual, 'reportes/') !== false) ? 'active' : '' ?>">
                 <i class="bi bi-file-earmark-bar-graph me-3"></i> Reportes
             </a>
+            <?php endif; ?>
         </div>
     </div>
 

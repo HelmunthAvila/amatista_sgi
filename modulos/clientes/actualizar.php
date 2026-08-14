@@ -1,5 +1,6 @@
 <?php
 include("../../includes/sesion.php");
+requiere_rol('admin');
 // Iniciamos sesión para interactuar con el sistema de notificaciones
 
 // Incluye el archivo de conexión a la base de datos

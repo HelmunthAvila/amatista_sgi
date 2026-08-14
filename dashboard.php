@@ -6,6 +6,12 @@ if (!isset($_SESSION['id_usuario'])) {
     exit();
 }
 
+// El cajero opera únicamente en el POS: el dashboard es exclusivo de administración
+if (isset($_SESSION['rol']) && $_SESSION['rol'] !== 'admin') {
+    header("Location: modulos/ventas/pos.php");
+    exit();
+}
+
 require_once("conexion.php");
 include("includes/header.php");
 

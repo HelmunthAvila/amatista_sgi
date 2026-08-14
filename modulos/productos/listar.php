@@ -1,5 +1,6 @@
 <?php
 include("../../includes/sesion.php");
+requiere_rol('admin');
 // Iniciamos sesión al principio para renderizar las notificaciones instantáneas
 
 // Incluye la conexión a la base de datos y el encabezado general del sistema

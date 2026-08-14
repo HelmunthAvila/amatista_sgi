@@ -1,5 +1,6 @@
 <?php
 include("../../includes/sesion.php");
+requiere_rol('admin');
 // Iniciamos sesión para gestionar las alertas estructuradas
 
 // Incluir el archivo de conexión a la base de datos

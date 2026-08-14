@@ -1,4 +1,5 @@
-<?php include("../../includes/sesion.php"); ?>
+<?php include("../../includes/sesion.php");
+requiere_rol('admin'); ?>
 <!-- CONTENEDOR PRINCIPAL DEL MENÚ DE REPORTES Y FILTROS -->
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
 

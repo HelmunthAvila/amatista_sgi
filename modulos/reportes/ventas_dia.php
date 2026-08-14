@@ -1,5 +1,6 @@
 <?php
 include("../../includes/sesion.php");
+requiere_rol('admin');
 
 // 1. Conexión a la base de datos
 include("../../conexion.php");

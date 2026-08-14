@@ -37,7 +37,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $_SESSION['nombre_usuario'] = $u['nombre'];
                 $_SESSION['rol'] = $u['rol'];
 
-                header("Location: dashboard.php");
+                // Redirección según rol: el cajero opera únicamente en el POS
+                if ($_SESSION['rol'] === 'admin') {
+                    header("Location: dashboard.php");
+                } else {
+                    header("Location: modulos/ventas/pos.php");
+                }
                 exit; 
             } else {
                 $error = "Contraseña incorrecta";
