@@ -15,7 +15,10 @@ CONSULTA DE USUARIOS
 Se obtienen todos los usuarios registrados en el
 sistema ordenados alfabéticamente por nombre
 */
-$usuarios = mysqli_query($conexion, "SELECT * FROM usuarios ORDER BY nombre ASC");
+// Filtro de estado (auditoría): activos por defecto; ?filtro_estado=inactivo muestra desactivados
+$filtro_estado = $_GET['filtro_estado'] ?? '';
+$condicion_estado = ($filtro_estado === 'inactivo') ? ' WHERE u.estado = 0' : ' WHERE u.estado = 1';
+$usuarios = mysqli_query($conexion, "SELECT u.*, uu.nombre as eliminado_por_nombre FROM usuarios u LEFT JOIN usuarios uu ON u.eliminado_por = uu.id" . $condicion_estado . " ORDER BY u.nombre ASC");
 
 ?>
 
@@ -35,9 +38,20 @@ $usuarios = mysqli_query($conexion, "SELECT * FROM usuarios ORDER BY nombre ASC"
         </div>
 
         <!-- Botón para registrar nuevo usuario -->
-        <a href="agregar.php" class="btn btn-primary rounded-pill px-4 shadow-sm">
-            <i class="bi bi-person-plus-fill me-2"></i>Registrar Usuario
-        </a>
+        <div class="d-flex gap-2">
+            <?php if ($filtro_estado === 'inactivo'): ?>
+                <a href="listar.php" class="btn btn-outline-secondary rounded-pill px-3 shadow-sm">
+                    <i class="bi bi-arrow-repeat me-2"></i>Ver Activos
+                </a>
+            <?php else: ?>
+                <a href="listar.php?filtro_estado=inactivo" class="btn btn-outline-secondary rounded-pill px-3 shadow-sm">
+                    <i class="bi bi-person-slash me-2"></i>Ver Desactivados
+                </a>
+            <?php endif; ?>
+            <a href="agregar.php" class="btn btn-primary rounded-pill px-4 shadow-sm">
+                <i class="bi bi-person-plus-fill me-2"></i>Registrar Usuario
+            </a>
+        </div>
 
     </div>
 
@@ -142,6 +156,15 @@ $usuarios = mysqli_query($conexion, "SELECT * FROM usuarios ORDER BY nombre ASC"
                                     @<?php echo $u['usuario']; ?>
                                     </span>
 
+                                    <?php if($u['estado'] == 0 && !empty($u['motivo_eliminacion'])): ?>
+                                        <span class="small text-danger">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            Desactivado por <?php echo htmlspecialchars($u['eliminado_por_nombre'] ?? 'Usuario'); ?>
+                                            el <?php echo date('d/m/Y H:i', strtotime($u['eliminado_en'])); ?> —
+                                            <?php echo htmlspecialchars($u['motivo_eliminacion']); ?>
+                                        </span>
+                                    <?php endif; ?>
+
                                 </div>
 
                             </div>
@@ -206,13 +229,24 @@ $usuarios = mysqli_query($conexion, "SELECT * FROM usuarios ORDER BY nombre ASC"
                                 <i class="bi bi-pencil-square text-primary"></i>
 
                                 </a>
-                                <form method="POST" action="eliminar.php" class="d-inline" onsubmit="return confirm('¿Eliminar acceso de este usuario?')">
-                                    <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
-                                    <input type="hidden" name="id" value="<?php echo $u['id']; ?>">
-                                    <button type="submit" class="btn btn-sm btn-white bg-white" title="Eliminar">
-                                        <i class="bi bi-trash text-danger"></i>
-                                    </button>
-                                </form>
+                                <?php if($u['estado'] == 0): ?>
+                                    <form method="POST" action="reactivar.php" class="d-inline">
+                                        <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+                                        <input type="hidden" name="id" value="<?php echo $u['id']; ?>">
+                                        <button type="submit" class="btn btn-sm btn-white bg-white" title="Reactivar">
+                                            <i class="bi bi-arrow-counterclockwise text-success"></i>
+                                        </button>
+                                    </form>
+                                <?php else: ?>
+                                    <form method="POST" action="eliminar.php" class="d-inline" onsubmit="var m=prompt('Motivo de la desactivación (obligatorio):'); if(!m || !m.trim()){ alert('Debe indicar el motivo.'); return false; } this.motivo.value=m.trim();">
+                                        <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+                                        <input type="hidden" name="id" value="<?php echo $u['id']; ?>">
+                                        <input type="hidden" name="motivo" value="">
+                                        <button type="submit" class="btn btn-sm btn-white bg-white" title="Desactivar">
+                                            <i class="bi bi-trash text-danger"></i>
+                                        </button>
+                                    </form>
+                                <?php endif; ?>
 
                             </div>
 

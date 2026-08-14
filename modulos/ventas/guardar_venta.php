@@ -55,7 +55,7 @@ try {
 
         // Revalidación de stock al momento de la venta (AM-013): evita stock negativo
         // si el inventario cambió después de agregar el producto al carrito.
-        $stmt_check = mysqli_prepare($conexion, "SELECT stock FROM productos WHERE id = ?");
+        $stmt_check = mysqli_prepare($conexion, "SELECT stock FROM productos WHERE id = ? AND estado = 1");
         mysqli_stmt_bind_param($stmt_check, "i", $id_producto);
         mysqli_stmt_execute($stmt_check);
         $fila_check = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_check));

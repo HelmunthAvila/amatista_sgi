@@ -22,19 +22,20 @@ function obtenerDato($conexion, $sql) {
 }
 
 // Indicadores maestros
-$ventas_dia = obtenerDato($conexion, "SELECT SUM(total) as total FROM ventas WHERE DATE(fecha)=CURDATE()");
-$ventas_mes = obtenerDato($conexion, "SELECT SUM(total) as total FROM ventas WHERE MONTH(fecha)=MONTH(CURDATE()) AND YEAR(fecha)=YEAR(CURDATE())");
-$productos  = obtenerDato($conexion, "SELECT COUNT(*) as total FROM productos");
-$clientes   = obtenerDato($conexion, "SELECT COUNT(*) as total FROM clientes");
+$ventas_dia = obtenerDato($conexion, "SELECT SUM(total) as total FROM ventas WHERE DATE(fecha)=CURDATE() AND estado = 1");
+$ventas_mes = obtenerDato($conexion, "SELECT SUM(total) as total FROM ventas WHERE MONTH(fecha)=MONTH(CURDATE()) AND YEAR(fecha)=YEAR(CURDATE()) AND estado = 1");
+$productos  = obtenerDato($conexion, "SELECT COUNT(*) as total FROM productos WHERE estado = 1");
+$clientes   = obtenerDato($conexion, "SELECT COUNT(*) as total FROM clientes WHERE estado = 1");
 
 // Stock Crítico
-$stock_bajo = mysqli_query($conexion, "SELECT nombre, marca, talla, stock FROM productos WHERE stock <= 5 ORDER BY stock ASC LIMIT 5");
+$stock_bajo = mysqli_query($conexion, "SELECT nombre, marca, talla, stock FROM productos WHERE stock <= 5 AND estado = 1 ORDER BY stock ASC LIMIT 5");
 
 // Top vendidos
 $top_vendidos = mysqli_query($conexion, "
     SELECT p.nombre, p.marca, SUM(dv.cantidad) as total_vendido 
     FROM detalle_venta dv
     JOIN productos p ON dv.id_producto = p.id
+    JOIN ventas v ON dv.id_venta = v.id AND v.estado = 1
     GROUP BY dv.id_producto
     ORDER BY total_vendido DESC
     LIMIT 5
@@ -45,7 +46,7 @@ $top_vendidos = mysqli_query($conexion, "
 // Semanal: ventas por día de la semana actual (Lun a Dom)
 $datos_semanal = ['labels' => ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'], 'data' => array_fill(0, 7, 0)];
 $res_semanal = mysqli_query($conexion, "SELECT DAYOFWEEK(fecha) as dia, SUM(total) as total 
-    FROM ventas WHERE YEARWEEK(fecha, 1) = YEARWEEK(CURDATE(), 1) GROUP BY DAYOFWEEK(fecha)");
+    FROM ventas WHERE YEARWEEK(fecha, 1) = YEARWEEK(CURDATE(), 1) AND estado = 1 GROUP BY DAYOFWEEK(fecha)");
 if ($res_semanal) {
     while ($f = mysqli_fetch_assoc($res_semanal)) {
         // DAYOFWEEK de MySQL: 1=Dom ... 7=Sáb -> índice 0=Lun ... 6=Dom
@@ -63,7 +64,7 @@ for ($s = 1; $s <= $num_semanas; $s++) {
     $datos_mensual['data'][] = 0;
 }
 $res_mensual = mysqli_query($conexion, "SELECT CEIL(DAY(fecha)/7) as semana, SUM(total) as total 
-    FROM ventas WHERE MONTH(fecha) = MONTH(CURDATE()) AND YEAR(fecha) = YEAR(CURDATE()) GROUP BY CEIL(DAY(fecha)/7)");
+    FROM ventas WHERE MONTH(fecha) = MONTH(CURDATE()) AND YEAR(fecha) = YEAR(CURDATE()) AND estado = 1 GROUP BY CEIL(DAY(fecha)/7)");
 if ($res_mensual) {
     while ($f = mysqli_fetch_assoc($res_mensual)) {
         $idx = (int)$f['semana'] - 1;
@@ -79,7 +80,7 @@ $datos_anual = [
     'data'   => array_fill(0, 12, 0)
 ];
 $res_anual = mysqli_query($conexion, "SELECT MONTH(fecha) as mes, SUM(total) as total 
-    FROM ventas WHERE YEAR(fecha) = YEAR(CURDATE()) GROUP BY MONTH(fecha)");
+    FROM ventas WHERE YEAR(fecha) = YEAR(CURDATE()) AND estado = 1 GROUP BY MONTH(fecha)");
 if ($res_anual) {
     while ($f = mysqli_fetch_assoc($res_anual)) {
         $idx = (int)$f['mes'] - 1;

@@ -13,9 +13,10 @@ if(!isset($_GET['id']) || empty($_GET['id'])){
 $id_venta = intval($_GET['id']);
 
 // 1. Consultar maestro de la venta y datos del cliente (Corregido según image_a2f287.png)
-$stmt_master = mysqli_prepare($conexion, "SELECT v.id, v.fecha, v.total, c.nombre, c.telefono 
+$stmt_master = mysqli_prepare($conexion, "SELECT v.id, v.fecha, v.total, v.estado, v.motivo_anulacion, v.anulada_en, c.nombre, c.telefono, u.nombre as anulada_por_nombre 
                                          FROM ventas v 
                                          INNER JOIN clientes c ON v.id_cliente = c.id 
+                                         LEFT JOIN usuarios u ON v.anulada_por = u.id 
                                          WHERE v.id = ?");
 mysqli_stmt_bind_param($stmt_master, "i", $id_venta);
 mysqli_stmt_execute($stmt_master);
@@ -65,6 +66,9 @@ $query_detalle = mysqli_stmt_get_result($stmt_detalle);
             <div class="d-flex align-items-center gap-2 mb-1">
                 <h2 class="fw-bold text-dark mb-0" style="letter-spacing: -0.5px;">Detalle de Factura</h2>
                 <span class="badge-id">#<?php echo $venta['id']; ?></span>
+                <?php if($venta['estado'] == 0): ?>
+                    <span class="badge bg-danger-subtle text-danger ms-2">ANULADA</span>
+                <?php endif; ?>
             </div>
             <p class="text-muted small mb-0">Comprobante de desglose comercial interno de Amatista SGI.</p>
         </div>
@@ -97,6 +101,14 @@ $query_detalle = mysqli_stmt_get_result($stmt_detalle);
                     <div class="mb-0">
                         <label class="text-muted small d-block mb-1">Fecha de Procesamiento</label>
                         <span class="text-dark fw-semibold"><i class="bi bi-calendar-event me-1 text-muted"></i> <?php echo date("d/m/Y H:i:s", strtotime($venta['fecha'])); ?></span>
+                        <?php if($venta['estado'] == 0 && !empty($venta['motivo_anulacion'])): ?>
+                            <div class="small text-danger mt-2">
+                                <i class="bi bi-info-circle me-1"></i>
+                                Anulada por <?php echo htmlspecialchars($venta['anulada_por_nombre'] ?? 'Usuario'); ?>
+                                el <?php echo date('d/m/Y H:i', strtotime($venta['anulada_en'])); ?> —
+                                <?php echo htmlspecialchars($venta['motivo_anulacion']); ?>
+                            </div>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>

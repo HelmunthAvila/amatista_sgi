@@ -12,27 +12,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !csrf_verificar()) {
     exit();
 }
 
-
-// Verificar que el ID del proveedor fue enviado por la URL
+// Verificar que el ID del proveedor fue enviado
 if (isset($_POST['id'])) {
 
-    // Limpiar el ID recibido
+    // El motivo es obligatorio para la trazabilidad de auditoría
+    $motivo = trim($_POST['motivo'] ?? '');
+    if ($motivo === '') {
+        $_SESSION['alerta'] = ['tipo' => 'danger', 'mensaje' => 'Debe indicar el motivo de la desactivación.'];
+        header("Location: listar.php");
+        exit();
+    }
+
     $id = intval($_POST['id']);
+    $id_usuario = intval($_SESSION['id_usuario']);
 
-    // Sentencia preparada para eliminar el proveedor (AM-005)
-    $stmt = mysqli_prepare($conexion, "DELETE FROM proveedores WHERE id = ?");
-    mysqli_stmt_bind_param($stmt, "i", $id);
+    // Soft delete: el proveedor queda desactivado con registro de quién, cuándo y por qué (auditoría)
+    $stmt = mysqli_prepare($conexion, "UPDATE proveedores SET estado = 0, eliminado_por = ?, eliminado_en = NOW(), motivo_eliminacion = ? WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, "isi", $id_usuario, $motivo, $id);
 
-    // Ejecutar la consulta de eliminación
+    // Ejecutar la consulta de desactivación
     if (mysqli_stmt_execute($stmt)) {
         $_SESSION['alerta'] = [
             'tipo' => 'success',
-            'mensaje' => '<strong>¡Eliminado!</strong> El proveedor ha sido retirado del SGI de forma exitosa.'
+            'mensaje' => '<strong>¡Desactivado!</strong> El proveedor fue deshabilitado y su historial se conserva.'
         ];
     } else {
         $_SESSION['alerta'] = [
             'tipo' => 'danger',
-            'mensaje' => '<strong>Error crítico:</strong> El proveedor no puede ser eliminado porque tiene productos o compras vinculadas en el inventario.'
+            'mensaje' => '<strong>Error:</strong> No se pudo desactivar el proveedor.'
         ];
     }
 }

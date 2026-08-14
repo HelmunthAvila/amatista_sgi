@@ -61,6 +61,9 @@ if(!$detalle){
         <p>Nit: 123456789-0</p>
         <p>---------------------------</p>
         <p><strong>TICKET DE VENTA #<?php echo $id_venta; ?></strong></p>
+        <?php if($venta['estado'] == 0): ?>
+            <p style="color: #d9383a; font-weight: bold;">*** FACTURA ANULADA ***</p>
+        <?php endif; ?>
         <p>Fecha: <?php echo date("d/m/Y H:i", strtotime($venta['fecha'])); ?></p>
     </div>
 

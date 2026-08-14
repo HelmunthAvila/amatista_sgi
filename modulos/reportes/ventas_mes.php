@@ -20,7 +20,7 @@ if ($pagina_actual < 1) { $pagina_actual = 1; }
 $offset = ($pagina_actual - 1) * $por_pagina;
 
 // --- CONSULTA PARA CONTAR TOTAL DE VENTAS DEL MES ---
-$query_conteo = "SELECT COUNT(*) as total FROM ventas WHERE MONTH(fecha)='$mes' AND YEAR(fecha)='$anio'";
+$query_conteo = "SELECT COUNT(*) as total FROM ventas WHERE MONTH(fecha)='$mes' AND YEAR(fecha)='$anio' AND estado = 1";
 $res_conteo = mysqli_query($conexion, $query_conteo);
 $fila_conteo = mysqli_fetch_assoc($res_conteo);
 $total_registros = $fila_conteo['total'];
@@ -35,6 +35,7 @@ $ventas = mysqli_query($conexion, "
     JOIN clientes ON ventas.id_cliente = clientes.id
     WHERE MONTH(ventas.fecha)='$mes' 
     AND YEAR(ventas.fecha)='$anio'
+    AND ventas.estado = 1
     ORDER BY ventas.fecha DESC
     LIMIT $por_pagina OFFSET $offset
 ");
@@ -46,7 +47,7 @@ if (!$ventas) {
 /*--------------------------------------------------
 CONSULTA: TOTAL DE DINERO VENDIDO EN EL MES (Sin límites de página)
 --------------------------------------------------*/
-$total_mes_query = mysqli_query($conexion, "SELECT SUM(total) as total_mes FROM ventas WHERE MONTH(fecha)='$mes' AND YEAR(fecha)='$anio'");
+$total_mes_query = mysqli_query($conexion, "SELECT SUM(total) as total_mes FROM ventas WHERE MONTH(fecha)='$mes' AND YEAR(fecha)='$anio' AND estado = 1");
 $total_mes_data = mysqli_fetch_assoc($total_mes_query);
 $total_mes = $total_mes_data['total_mes'] ?? 0;
 ?>

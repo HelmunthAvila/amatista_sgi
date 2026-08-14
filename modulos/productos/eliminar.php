@@ -12,14 +12,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !csrf_verificar()) {
     exit();
 }
 
-
-// Verifica que se haya recibido el ID del producto por la URL
+// Verifica que se haya recibido el ID del producto
 if (isset($_POST['id'])) {
 
-    // Limpia el ID recibido
-    $id = intval($_POST['id']);
+    // El motivo es obligatorio para la trazabilidad de auditoría
+    $motivo = trim($_POST['motivo'] ?? '');
+    if ($motivo === '') {
+        $_SESSION['alerta'] = ['tipo' => 'danger', 'mensaje' => 'Debe indicar el motivo de la desactivación.'];
+        header("Location: listar.php");
+        exit();
+    }
 
-    // Consultamos el nombre antes de eliminarlo para el mensaje informativo personalizado
+    $id = intval($_POST['id']);
+    $id_usuario = intval($_SESSION['id_usuario']);
+
+    // Consultamos el nombre antes de desactivarlo para el mensaje informativo personalizado
     $stmt_nombre = mysqli_prepare($conexion, "SELECT nombre FROM productos WHERE id = ?");
     mysqli_stmt_bind_param($stmt_nombre, "i", $id);
     mysqli_stmt_execute($stmt_nombre);
@@ -27,20 +34,21 @@ if (isset($_POST['id'])) {
     $nombre_producto = $resultado ? $resultado['nombre'] : 'Desconocido';
     mysqli_stmt_close($stmt_nombre);
 
-    // Ejecuta la consulta preparada para eliminar el producto (AM-005)
-    $stmt = mysqli_prepare($conexion, "DELETE FROM productos WHERE id = ?");
-    mysqli_stmt_bind_param($stmt, "i", $id);
+    // Soft delete: el producto queda desactivado con registro de quién, cuándo y por qué (auditoría).
+    // No se borra físicamente para conservar la integridad referencial con las ventas pasadas.
+    $stmt = mysqli_prepare($conexion, "UPDATE productos SET estado = 0, eliminado_por = ?, eliminado_en = NOW(), motivo_eliminacion = ? WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, "isi", $id_usuario, $motivo, $id);
 
-    // Verifica si la eliminación fue exitosa e inyecta la alerta en sesión
+    // Verifica si la desactivación fue exitosa e inyecta la alerta en sesión
     if (mysqli_stmt_execute($stmt)) {
         $_SESSION['alerta'] = [
             'tipo' => 'success',
-            'mensaje' => '<strong>¡Producto eliminado!</strong> El modelo <strong>"' . htmlspecialchars($nombre_producto) . '"</strong> fue removido del inventario.'
+            'mensaje' => '<strong>¡Producto desactivado!</strong> El modelo <strong>"' . htmlspecialchars($nombre_producto) . '"</strong> fue deshabilitado y su historial se conserva.'
         ];
     } else {
         $_SESSION['alerta'] = [
             'tipo' => 'danger',
-            'mensaje' => '<strong>Error al eliminar:</strong> El modelo <strong>"' . htmlspecialchars($nombre_producto) . '"</strong> tiene facturas asociadas en el POS y no se puede borrar.'
+            'mensaje' => '<strong>Error al desactivar:</strong> No se pudo deshabilitar el modelo <strong>"' . htmlspecialchars($nombre_producto) . '"</strong>.'
         ];
     }
 

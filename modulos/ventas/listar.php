@@ -20,11 +20,15 @@ $fecha_fin = $_GET['fecha_fin'] ?? '';
 $fecha_inicio_raw = $fecha_inicio;
 $fecha_fin_raw = $fecha_fin;
 
+// Filtro de estado (auditoría): activas por defecto; ?filtro_estado=anuladas muestra anuladas
+$filtro_estado = $_GET['filtro_estado'] ?? '';
+$condicion_estado = ($filtro_estado === 'anuladas') ? ' AND v.estado = 0' : ' AND v.estado = 1';
+
 // --- CONSULTA PARA CONTAR EL TOTAL DE REGISTROS (Necesario para la paginación) ---
 $query_conteo = "SELECT COUNT(*) as total_registros 
                  FROM ventas v
                  INNER JOIN clientes c ON v.id_cliente = c.id
-                 WHERE 1=1";
+                 WHERE 1=1" . $condicion_estado;
 
 if(!empty($fecha_inicio)){ $query_conteo .= " AND DATE(v.fecha) >= ?"; }
 if(!empty($fecha_fin)){ $query_conteo .= " AND DATE(v.fecha) <= ?"; }
@@ -48,10 +52,11 @@ $total_paginas = ceil($total_registros / $por_pagina);
 
 
 // --- CONSULTA PRINCIPAL CON LIMIT Y OFFSET ---
-$query = "SELECT v.id, v.fecha, v.total, c.nombre as cliente 
+$query = "SELECT v.id, v.fecha, v.total, v.estado, v.motivo_anulacion, v.anulada_en, c.nombre as cliente, u.nombre as anulada_por_nombre 
           FROM ventas v
           INNER JOIN clientes c ON v.id_cliente = c.id
-          WHERE 1=1";
+          LEFT JOIN usuarios u ON v.anulada_por = u.id
+          WHERE 1=1" . $condicion_estado;
 
 if(!empty($fecha_inicio)){ $query .= " AND DATE(v.fecha) >= ?"; }
 if(!empty($fecha_fin)){ $query .= " AND DATE(v.fecha) <= ?"; }
@@ -76,6 +81,7 @@ if(!$ventas){ die("Error al consultar la información. Inténtalo de nuevo."); }
 $params_busqueda = "";
 if(!empty($fecha_inicio_raw)){ $params_busqueda .= "&fecha_inicio=" . urlencode($fecha_inicio_raw); }
 if(!empty($fecha_fin_raw)){ $params_busqueda .= "&fecha_fin=" . urlencode($fecha_fin_raw); }
+if(!empty($filtro_estado)){ $params_busqueda .= "&filtro_estado=" . urlencode($filtro_estado); }
 ?>
 
 <style>
@@ -148,9 +154,20 @@ if(!empty($fecha_fin_raw)){ $params_busqueda .= "&fecha_fin=" . urlencode($fecha
             <h2 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.5px;">Historial de Ventas</h2>
             <p class="text-muted small mb-0">Consulta, filtra y anula facturas operativas de Amatista SGI.</p>
         </div>
-        <a href="pos.php" class="btn btn-amatista-primary rounded-pill px-4 shadow-sm">
-            <i class="bi bi-cart-plus-fill me-2"></i> Nueva Venta
-        </a>
+        <div class="d-flex gap-2">
+            <?php if ($filtro_estado === 'anuladas'): ?>
+                <a href="listar.php" class="btn btn-amatista-secondary rounded-pill px-3 shadow-sm">
+                    <i class="bi bi-arrow-repeat me-2"></i> Ver Activas
+                </a>
+            <?php else: ?>
+                <a href="listar.php?filtro_estado=anuladas" class="btn btn-amatista-secondary rounded-pill px-3 shadow-sm">
+                    <i class="bi bi-receipt-cutoff me-2"></i> Ver Anuladas
+                </a>
+            <?php endif; ?>
+            <a href="pos.php" class="btn btn-amatista-primary rounded-pill px-4 shadow-sm">
+                <i class="bi bi-cart-plus-fill me-2"></i> Nueva Venta
+            </a>
+        </div>
     </div>
 
     <div class="card card-custom shadow-sm mb-4">
@@ -194,9 +211,24 @@ if(!empty($fecha_fin_raw)){ $params_busqueda .= "&fecha_fin=" . urlencode($fecha
                     <?php if(mysqli_num_rows($ventas) > 0){ ?>
                         <?php while($v = mysqli_fetch_assoc($ventas)){ ?>
                             <tr class="border-bottom">
-                                <td class="ps-4"><span class="badge-id">#<?php echo $v['id']; ?></span></td>
+                                <td class="ps-4">
+                                    <span class="badge-id">#<?php echo $v['id']; ?></span>
+                                    <?php if($v['estado'] == 0): ?>
+                                        <span class="badge bg-danger-subtle text-danger ms-2">Anulada</span>
+                                    <?php endif; ?>
+                                </td>
                                 <td class="text-secondary small"><i class="bi bi-calendar3 me-2"></i><?php echo date("d/m/Y H:i", strtotime($v['fecha'])); ?></td>
-                                <td class="fw-semibold text-dark"><?php echo htmlspecialchars($v['cliente']); ?></td>
+                                <td class="fw-semibold text-dark">
+                                    <?php echo htmlspecialchars($v['cliente']); ?>
+                                    <?php if($v['estado'] == 0 && !empty($v['motivo_anulacion'])): ?>
+                                        <div class="small text-danger">
+                                            <i class="bi bi-info-circle me-1"></i>
+                                            Anulada por <?php echo htmlspecialchars($v['anulada_por_nombre'] ?? 'Usuario'); ?>
+                                            el <?php echo date('d/m/Y H:i', strtotime($v['anulada_en'])); ?> —
+                                            <?php echo htmlspecialchars($v['motivo_anulacion']); ?>
+                                        </div>
+                                    <?php endif; ?>
+                                </td>
                                 <td class="fw-bold" style="color: var(--accent-success);">$<?php echo number_format($v['total'], 0, ',', '.'); ?></td>
                                 <td class="text-center">
                                     <div class="btn-group shadow-sm rounded-3 overflow-hidden">
@@ -206,13 +238,16 @@ if(!empty($fecha_fin_raw)){ $params_busqueda .= "&fecha_fin=" . urlencode($fecha
                                         <a href="ticket.php?id=<?php echo $v['id']; ?>" target="_blank" class="btn btn-sm btn-white bg-white border-end" title="Imprimir Ticket">
                                             <i class="bi bi-printer text-secondary fs-6"></i>
                                         </a>
-                                        <form method="POST" action="eliminar.php" class="d-inline" onsubmit="return confirm('¿Está seguro?')">
-                                            <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
-                                            <input type="hidden" name="id" value="<?php echo $v['id']; ?>">
-                                            <button type="submit" class="btn btn-sm btn-white bg-white" title="Anular Venta">
-                                                <i class="bi bi-trash3 text-danger fs-6"></i>
-                                            </button>
-                                        </form>
+                                        <?php if($v['estado'] == 1): ?>
+                                            <form method="POST" action="eliminar.php" class="d-inline" onsubmit="var m=prompt('Motivo de la anulación (obligatorio):'); if(!m || !m.trim()){ alert('Debe indicar el motivo.'); return false; } this.motivo.value=m.trim();">
+                                                <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+                                                <input type="hidden" name="id" value="<?php echo $v['id']; ?>">
+                                                <input type="hidden" name="motivo" value="">
+                                                <button type="submit" class="btn btn-sm btn-white bg-white" title="Anular Venta">
+                                                    <i class="bi bi-trash3 text-danger fs-6"></i>
+                                                </button>
+                                            </form>
+                                        <?php endif; ?>
                                     </div>
                                 </td>
                             </tr>

@@ -4,7 +4,7 @@ include("../../includes/sesion.php");
 include("../../conexion.php");
 include("../../includes/header.php");
 
-$productos = mysqli_query($conexion, "SELECT * FROM productos WHERE stock > 0 ORDER BY nombre ASC");
+$productos = mysqli_query($conexion, "SELECT * FROM productos WHERE stock > 0 AND estado = 1 ORDER BY nombre ASC");
 $clientes = mysqli_query($conexion, "SELECT * FROM clientes ORDER BY nombre ASC");
 
 if(!isset($_SESSION['carrito'])){

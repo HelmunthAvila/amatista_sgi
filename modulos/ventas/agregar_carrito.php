@@ -25,7 +25,7 @@ if($cantidad <= 0){
     exit();
 }
 
-$stmt = mysqli_prepare($conexion, "SELECT id, nombre, precio, stock FROM productos WHERE id = ?");
+$stmt = mysqli_prepare($conexion, "SELECT id, nombre, precio, stock FROM productos WHERE id = ? AND estado = 1");
 mysqli_stmt_bind_param($stmt, "i", $id);
 mysqli_stmt_execute($stmt);
 $consulta = mysqli_stmt_get_result($stmt);

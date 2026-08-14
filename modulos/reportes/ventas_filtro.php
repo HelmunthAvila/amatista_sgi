@@ -32,7 +32,7 @@ $fecha_inicio_ini = $fecha_inicio . ' 00:00:00';
 $fecha_fin_fin = $fecha_fin . ' 23:59:59';
 
 // Consultas preparadas (AM-005)
-$query_conteo = "SELECT COUNT(*) as total FROM ventas WHERE fecha BETWEEN ? AND ?";
+$query_conteo = "SELECT COUNT(*) as total FROM ventas WHERE fecha BETWEEN ? AND ? AND estado = 1";
 $stmt_conteo = mysqli_prepare($conexion, $query_conteo);
 mysqli_stmt_bind_param($stmt_conteo, "ss", $fecha_inicio_ini, $fecha_fin_fin);
 mysqli_stmt_execute($stmt_conteo);
@@ -49,6 +49,7 @@ $stmt = mysqli_prepare($conexion, "
     FROM ventas
     JOIN clientes ON ventas.id_cliente = clientes.id
     WHERE ventas.fecha BETWEEN ? AND ?
+    AND ventas.estado = 1
     ORDER BY ventas.fecha DESC
     LIMIT $por_pagina OFFSET $offset
 ");
@@ -63,7 +64,7 @@ if (!$ventas) {
 /*--------------------------------------------------
 CONSULTA: TOTAL ACUMULADO DEL RANGO (Sin límites de página)
 --------------------------------------------------*/
-$stmt_total = mysqli_prepare($conexion, "SELECT SUM(total) as total_rango FROM ventas WHERE fecha BETWEEN ? AND ?");
+$stmt_total = mysqli_prepare($conexion, "SELECT SUM(total) as total_rango FROM ventas WHERE fecha BETWEEN ? AND ? AND estado = 1");
 mysqli_stmt_bind_param($stmt_total, "ss", $fecha_inicio_ini, $fecha_fin_fin);
 mysqli_stmt_execute($stmt_total);
 $total_filtro_data = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_total));

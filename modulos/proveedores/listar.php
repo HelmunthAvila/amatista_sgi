@@ -22,10 +22,14 @@ $busqueda = $_GET['busqueda'] ?? '';
 
 
 // --- CONSULTA PARA CONTAR EL TOTAL DE REGISTROS (Necesario para la paginación) ---
-$query_conteo = "SELECT COUNT(*) as total_registros FROM proveedores WHERE 1=1";
+// Filtro de estado (auditoría): activos por defecto; ?filtro_estado=inactivo muestra desactivados
+$filtro_estado = $_GET['filtro_estado'] ?? '';
+$condicion_estado = ($filtro_estado === 'inactivo') ? ' AND p.estado = 0' : ' AND p.estado = 1';
+
+$query_conteo = "SELECT COUNT(*) as total_registros FROM proveedores p WHERE 1=1" . $condicion_estado;
 
 if (!empty($busqueda)) {
-    $query_conteo .= " AND (empresa LIKE ? OR nombre LIKE ?)";
+    $query_conteo .= " AND (p.empresa LIKE ? OR p.nombre LIKE ?)";
 }
 
 // Ejecuta el conteo con consulta preparada (AM-005)
@@ -44,14 +48,14 @@ $total_paginas = ceil($total_registros / $por_pagina);
 
 
 // --- CONSULTA PRINCIPAL CON LIMIT Y OFFSET ---
-$query = "SELECT * FROM proveedores WHERE 1=1";
+$query = "SELECT p.*, u.nombre as eliminado_por_nombre FROM proveedores p LEFT JOIN usuarios u ON p.eliminado_por = u.id WHERE 1=1" . $condicion_estado;
 
 if (!empty($busqueda)) {
-    $query .= " AND (empresa LIKE ? OR nombre LIKE ?)";
+    $query .= " AND (p.empresa LIKE ? OR p.nombre LIKE ?)";
 }
 
 // Ordena todos los proveedores alfabéticamente por nombre de empresa con los límites de paginación
-$query .= " ORDER BY empresa ASC LIMIT $por_pagina OFFSET $offset";
+$query .= " ORDER BY p.empresa ASC LIMIT $por_pagina OFFSET $offset";
 
 // Ejecuta la consulta preparada (AM-005)
 $stmt = mysqli_prepare($conexion, $query);
@@ -69,6 +73,7 @@ if (!$proveedores) {
 // Conservar los filtros activos al cambiar de página
 $params_busqueda = "";
 if(!empty($busqueda)){ $params_busqueda .= "&busqueda=" . urlencode($busqueda); }
+if(!empty($filtro_estado)){ $params_busqueda .= "&filtro_estado=" . urlencode($filtro_estado); }
 ?>
 
 <style>
@@ -171,9 +176,20 @@ if(!empty($busqueda)){ $params_busqueda .= "&busqueda=" . urlencode($busqueda); 
             <p class="text-muted small mb-0">Directorio de fábricas y contactos de suministros de calzado.</p>
         </div>
 
-        <a href="agregar.php" class="btn btn-amatista-primary rounded-pill px-4 shadow-sm d-flex align-items-center">
-            <i class="bi bi-building-add me-2 fs-5"></i> Registrar Proveedor
-        </a>
+        <div class="d-flex gap-2">
+            <?php if ($filtro_estado === 'inactivo'): ?>
+                <a href="listar.php" class="btn btn-amatista-secondary rounded-pill px-3 shadow-sm d-flex align-items-center">
+                    <i class="bi bi-arrow-repeat me-2"></i> Ver Activos
+                </a>
+            <?php else: ?>
+                <a href="listar.php?filtro_estado=inactivo" class="btn btn-amatista-secondary rounded-pill px-3 shadow-sm d-flex align-items-center">
+                    <i class="bi bi-building me-2"></i> Ver Desactivados
+                </a>
+            <?php endif; ?>
+            <a href="agregar.php" class="btn btn-amatista-primary rounded-pill px-4 shadow-sm d-flex align-items-center">
+                <i class="bi bi-building-add me-2 fs-5"></i> Registrar Proveedor
+            </a>
+        </div>
     </div>
 
     <div class="card card-custom shadow-sm mb-4">
@@ -235,6 +251,17 @@ if(!empty($busqueda)){ $params_busqueda .= "&busqueda=" . urlencode($busqueda); 
 
                             <td>
                                 <span class="text-dark fw-semibold small"><?php echo htmlspecialchars($p['nombre']); ?></span>
+                                <?php if($p['estado'] == 0): ?>
+                                    <span class="badge bg-danger-subtle text-danger ms-2">Desactivado</span>
+                                <?php endif; ?>
+                                <?php if($p['estado'] == 0 && !empty($p['motivo_eliminacion'])): ?>
+                                    <div class="small text-danger mt-1">
+                                        <i class="bi bi-info-circle me-1"></i>
+                                        Desactivado por <?php echo htmlspecialchars($p['eliminado_por_nombre'] ?? 'Usuario'); ?>
+                                        el <?php echo date('d/m/Y H:i', strtotime($p['eliminado_en'])); ?> —
+                                        <?php echo htmlspecialchars($p['motivo_eliminacion']); ?>
+                                    </div>
+                                <?php endif; ?>
                             </td>
 
                             <td>
@@ -253,13 +280,24 @@ if(!empty($busqueda)){ $params_busqueda .= "&busqueda=" . urlencode($busqueda); 
                                     <a href="editar.php?id=<?php echo $p['id']; ?>" class="btn btn-sm btn-white bg-white border-end" title="Editar Proveedor">
                                         <i class="bi bi-pencil-square text-primary fs-6"></i>
                                     </a>
-                                    <form method="POST" action="eliminar.php" class="d-inline" onsubmit="return confirm('¿Seguro que desea eliminar este proveedor del software?')">
-                                        <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
-                                        <input type="hidden" name="id" value="<?php echo $p['id']; ?>">
-                                        <button type="submit" class="btn btn-sm btn-white bg-white" title="Eliminar Proveedor">
-                                            <i class="bi bi-trash3 text-danger fs-6"></i>
-                                        </button>
-                                    </form>
+                                    <?php if($p['estado'] == 0): ?>
+                                        <form method="POST" action="reactivar.php" class="d-inline">
+                                            <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+                                            <input type="hidden" name="id" value="<?php echo $p['id']; ?>">
+                                            <button type="submit" class="btn btn-sm btn-white bg-white" title="Reactivar Proveedor">
+                                                <i class="bi bi-arrow-counterclockwise text-success fs-6"></i>
+                                            </button>
+                                        </form>
+                                    <?php else: ?>
+                                        <form method="POST" action="eliminar.php" class="d-inline" onsubmit="var m=prompt('Motivo de la desactivación (obligatorio):'); if(!m || !m.trim()){ alert('Debe indicar el motivo.'); return false; } this.motivo.value=m.trim();">
+                                            <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+                                            <input type="hidden" name="id" value="<?php echo $p['id']; ?>">
+                                            <input type="hidden" name="motivo" value="">
+                                            <button type="submit" class="btn btn-sm btn-white bg-white" title="Desactivar Proveedor">
+                                                <i class="bi bi-trash3 text-danger fs-6"></i>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                         </tr>

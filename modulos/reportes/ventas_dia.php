@@ -16,7 +16,7 @@ $ventas = mysqli_query($conexion,"
 SELECT ventas.*, clientes.nombre 
 FROM ventas
 JOIN clientes ON ventas.id_cliente = clientes.id
-WHERE DATE(ventas.fecha) = '$hoy'
+WHERE DATE(ventas.fecha) = '$hoy' AND ventas.estado = 1
 ORDER BY ventas.fecha DESC
 ");
 

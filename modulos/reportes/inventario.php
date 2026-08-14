@@ -23,7 +23,7 @@ $total_registros = $fila_conteo['total'];
 $total_paginas = ceil($total_registros / $por_pagina);
 
 // --- CONSULTA PRINCIPAL CON LÍMITES ---
-$productos = mysqli_query($conexion, "SELECT * FROM productos ORDER BY nombre ASC LIMIT $por_pagina OFFSET $offset");
+$productos = mysqli_query($conexion, "SELECT * FROM productos WHERE estado = 1 ORDER BY nombre ASC LIMIT $por_pagina OFFSET $offset");
 
 if (!$productos) {
     die("Error al consultar la información. Inténtalo de nuevo.");

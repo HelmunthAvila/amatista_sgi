@@ -33,6 +33,10 @@ CREATE TABLE IF NOT EXISTS `clientes` (
   `nombre` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `telefono` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `email` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `estado` tinyint NOT NULL DEFAULT '1',
+  `eliminado_por` int DEFAULT NULL,
+  `eliminado_en` datetime DEFAULT NULL,
+  `motivo_eliminacion` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=103 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -587,6 +591,10 @@ CREATE TABLE IF NOT EXISTS `productos` (
   `color` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `precio` decimal(10,2) DEFAULT NULL,
   `stock` int DEFAULT NULL,
+  `estado` tinyint NOT NULL DEFAULT '1',
+  `eliminado_por` int DEFAULT NULL,
+  `eliminado_en` datetime DEFAULT NULL,
+  `motivo_eliminacion` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=103 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -710,6 +718,10 @@ CREATE TABLE IF NOT EXISTS `proveedores` (
   `nombre` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `telefono` varchar(20) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `empresa` varchar(100) COLLATE utf8mb4_general_ci DEFAULT NULL,
+  `estado` tinyint NOT NULL DEFAULT '1',
+  `eliminado_por` int DEFAULT NULL,
+  `eliminado_en` datetime DEFAULT NULL,
+  `motivo_eliminacion` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -809,6 +821,10 @@ CREATE TABLE IF NOT EXISTS `ventas` (
   `id_cliente` int NOT NULL,
   `fecha` datetime NOT NULL,
   `total` decimal(10,2) NOT NULL,
+  `estado` tinyint NOT NULL DEFAULT '1',
+  `anulada_por` int DEFAULT NULL,
+  `anulada_en` datetime DEFAULT NULL,
+  `motivo_anulacion` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=105 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -941,3 +957,15 @@ ALTER TABLE `ventas`
 ALTER TABLE `detalle_venta`
   ADD CONSTRAINT `fk_detalle_venta` FOREIGN KEY (`id_venta`) REFERENCES `ventas` (`id`),
   ADD CONSTRAINT `fk_detalle_producto` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id`);
+
+ALTER TABLE `ventas`
+  ADD CONSTRAINT `fk_ventas_anulada_por` FOREIGN KEY (`anulada_por`) REFERENCES `usuarios` (`id`);
+
+ALTER TABLE `clientes`
+  ADD CONSTRAINT `fk_clientes_eliminado_por` FOREIGN KEY (`eliminado_por`) REFERENCES `usuarios` (`id`);
+
+ALTER TABLE `productos`
+  ADD CONSTRAINT `fk_productos_eliminado_por` FOREIGN KEY (`eliminado_por`) REFERENCES `usuarios` (`id`);
+
+ALTER TABLE `proveedores`
+  ADD CONSTRAINT `fk_proveedores_eliminado_por` FOREIGN KEY (`eliminado_por`) REFERENCES `usuarios` (`id`);
