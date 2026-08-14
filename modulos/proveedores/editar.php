@@ -8,10 +8,13 @@ include("../../includes/header.php");
 // Obtener el ID del proveedor enviado por URL de forma segura
 if (isset($_GET['id'])) {
 
-    $id = mysqli_real_escape_string($conexion, $_GET['id']);
+    $id = intval($_GET['id']);
 
-    // Consulta para obtener los datos del proveedor
-    $consulta = mysqli_query($conexion, "SELECT * FROM proveedores WHERE id = '$id'");
+    // Consulta preparada (AM-005) para obtener los datos del proveedor
+    $stmt = mysqli_prepare($conexion, "SELECT * FROM proveedores WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, "i", $id);
+    mysqli_stmt_execute($stmt);
+    $consulta = mysqli_stmt_get_result($stmt);
     $p = mysqli_fetch_array($consulta);
 
     if (!$p) { 

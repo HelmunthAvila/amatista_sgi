@@ -1,7 +1,4 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 require_once("includes/iniciar_sesion.php");
 include("conexion.php");
 
@@ -11,11 +8,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (!csrf_verificar()) {
         $error = "La sesión expiró. Recarga la página e inténtalo de nuevo.";
     } else {
-        $usuario = mysqli_real_escape_string($conexion, $_POST['usuario']);
+        $usuario = $_POST['usuario'];
         $pass = $_POST['password'];
 
-        $sql = "SELECT * FROM usuarios WHERE usuario = '$usuario' AND estado = 1";
-        $res = mysqli_query($conexion, $sql);
+        $sql = "SELECT * FROM usuarios WHERE usuario = ? AND estado = 1";
+        $stmt = mysqli_prepare($conexion, $sql);
+        mysqli_stmt_bind_param($stmt, "s", $usuario);
+        mysqli_stmt_execute($stmt);
+        $res = mysqli_stmt_get_result($stmt);
 
         if ($u = mysqli_fetch_assoc($res)) {
             $password_valida = false;
@@ -26,8 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // Hash MD5 legado: migra automáticamente a bcrypt en el primer inicio de sesión (AM-004)
                 $password_valida = true;
                 $nuevo_hash = password_hash($pass, PASSWORD_DEFAULT);
-                $nuevo_hash_escapado = mysqli_real_escape_string($conexion, $nuevo_hash);
-                mysqli_query($conexion, "UPDATE usuarios SET password = '$nuevo_hash_escapado' WHERE id = " . intval($u['id']));
+                $stmt_rehash = mysqli_prepare($conexion, "UPDATE usuarios SET password = ? WHERE id = ?");
+                mysqli_stmt_bind_param($stmt_rehash, "si", $nuevo_hash, $u['id']);
+                mysqli_stmt_execute($stmt_rehash);
+                mysqli_stmt_close($stmt_rehash);
             }
 
             if ($password_valida) {

@@ -25,13 +25,19 @@ $busqueda = $_GET['busqueda'] ?? '';
 $query_conteo = "SELECT COUNT(*) as total_registros FROM proveedores WHERE 1=1";
 
 if (!empty($busqueda)) {
-    $busqueda_escapada = mysqli_real_escape_string($conexion, $busqueda);
-    $query_conteo .= " AND (empresa LIKE '%$busqueda_escapada%' OR nombre LIKE '%$busqueda_escapada%')";
+    $query_conteo .= " AND (empresa LIKE ? OR nombre LIKE ?)";
 }
 
-$resultado_conteo = mysqli_query($conexion, $query_conteo);
-$fila_conteo = mysqli_fetch_assoc($resultado_conteo);
+// Ejecuta el conteo con consulta preparada (AM-005)
+$stmt_conteo = mysqli_prepare($conexion, $query_conteo);
+if (!empty($busqueda)) {
+    $busqueda_like = "%" . $busqueda . "%";
+    mysqli_stmt_bind_param($stmt_conteo, "ss", $busqueda_like, $busqueda_like);
+}
+mysqli_stmt_execute($stmt_conteo);
+$fila_conteo = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_conteo));
 $total_registros = $fila_conteo['total_registros'];
+mysqli_stmt_close($stmt_conteo);
 
 // Calcular el total de páginas necesarias
 $total_paginas = ceil($total_registros / $por_pagina);
@@ -41,18 +47,23 @@ $total_paginas = ceil($total_registros / $por_pagina);
 $query = "SELECT * FROM proveedores WHERE 1=1";
 
 if (!empty($busqueda)) {
-    $busqueda_escapada = mysqli_real_escape_string($conexion, $busqueda);
-    $query .= " AND (empresa LIKE '%$busqueda_escapada%' OR nombre LIKE '%$busqueda_escapada%')";
+    $query .= " AND (empresa LIKE ? OR nombre LIKE ?)";
 }
 
 // Ordena todos los proveedores alfabéticamente por nombre de empresa con los límites de paginación
 $query .= " ORDER BY empresa ASC LIMIT $por_pagina OFFSET $offset";
 
-// Ejecuta la consulta
-$proveedores = mysqli_query($conexion, $query);
+// Ejecuta la consulta preparada (AM-005)
+$stmt = mysqli_prepare($conexion, $query);
+if (!empty($busqueda)) {
+    $busqueda_like = "%" . $busqueda . "%";
+    mysqli_stmt_bind_param($stmt, "ss", $busqueda_like, $busqueda_like);
+}
+mysqli_stmt_execute($stmt);
+$proveedores = mysqli_stmt_get_result($stmt);
 
 if (!$proveedores) {
-    die("Error en la consulta de proveedores: " . mysqli_error($conexion));
+    die("Error al consultar la información. Inténtalo de nuevo.");
 }
 
 // Conservar los filtros activos al cambiar de página

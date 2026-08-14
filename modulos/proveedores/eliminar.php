@@ -17,13 +17,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !csrf_verificar()) {
 if (isset($_POST['id'])) {
 
     // Limpiar el ID recibido
-    $id = mysqli_real_escape_string($conexion, $_POST['id']);
+    $id = intval($_POST['id']);
 
-    // Sentencia SQL para eliminar el proveedor
-    $sql = "DELETE FROM proveedores WHERE id = '$id'";
+    // Sentencia preparada para eliminar el proveedor (AM-005)
+    $stmt = mysqli_prepare($conexion, "DELETE FROM proveedores WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, "i", $id);
 
     // Ejecutar la consulta de eliminación
-    if (mysqli_query($conexion, $sql)) {
+    if (mysqli_stmt_execute($stmt)) {
         $_SESSION['alerta'] = [
             'tipo' => 'success',
             'mensaje' => '<strong>¡Eliminado!</strong> El proveedor ha sido retirado del SGI de forma exitosa.'

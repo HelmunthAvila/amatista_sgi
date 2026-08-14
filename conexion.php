@@ -13,4 +13,7 @@ if(!$conexion){
     die("Error de conexión");
 }
 
+// Charset UTF-8 explícito para evitar problemas con tildes y caracteres especiales (AM-012)
+mysqli_set_charset($conexion, "utf8mb4");
+
 ?>

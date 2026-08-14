@@ -13,10 +13,13 @@ if(!isset($_GET['id']) || empty($_GET['id'])){
 $id_venta = intval($_GET['id']);
 
 // 1. Consultar maestro de la venta y datos del cliente (Corregido según image_a2f287.png)
-$query_master = mysqli_query($conexion, "SELECT v.id, v.fecha, v.total, c.nombre, c.telefono 
+$stmt_master = mysqli_prepare($conexion, "SELECT v.id, v.fecha, v.total, c.nombre, c.telefono 
                                          FROM ventas v 
                                          INNER JOIN clientes c ON v.id_cliente = c.id 
-                                         WHERE v.id = $id_venta");
+                                         WHERE v.id = ?");
+mysqli_stmt_bind_param($stmt_master, "i", $id_venta);
+mysqli_stmt_execute($stmt_master);
+$query_master = mysqli_stmt_get_result($stmt_master);
 
 if(!$query_master || mysqli_num_rows($query_master) == 0){
     $_SESSION['alerta'] = ['tipo' => 'danger', 'mensaje' => 'La venta solicitada no existe en el sistema.'];
@@ -27,10 +30,13 @@ if(!$query_master || mysqli_num_rows($query_master) == 0){
 $venta = mysqli_fetch_assoc($query_master);
 
 // 2. Consultar desglose detallado de los productos vendidos
-$query_detalle = mysqli_query($conexion, "SELECT dv.cantidad, dv.precio_unitario, p.nombre as producto 
+$stmt_detalle = mysqli_prepare($conexion, "SELECT dv.cantidad, dv.precio_unitario, p.nombre as producto 
                                           FROM detalle_venta dv 
                                           INNER JOIN productos p ON dv.id_producto = p.id 
-                                          WHERE dv.id_venta = $id_venta");
+                                          WHERE dv.id_venta = ?");
+mysqli_stmt_bind_param($stmt_detalle, "i", $id_venta);
+mysqli_stmt_execute($stmt_detalle);
+$query_detalle = mysqli_stmt_get_result($stmt_detalle);
 ?>
 
 <style>

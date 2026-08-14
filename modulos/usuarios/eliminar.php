@@ -15,11 +15,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !csrf_verificar()) {
 if (isset($_POST['id']) && !empty($_POST['id'])) {
     
     // Escapamos el ID por seguridad contra inyecciones SQL simples
-    $id_usuario = mysqli_real_escape_string($conexion, $_POST['id']);
+    $id_usuario = intval($_POST['id']);
     
-    // 3. Ejecutamos la sentencia de eliminación
-    $query = "DELETE FROM usuarios WHERE id = '$id_usuario'";
-    $resultado = mysqli_query($conexion, $query);
+    // 3. Ejecutamos la sentencia de eliminación preparada (AM-005)
+    $stmt = mysqli_prepare($conexion, "DELETE FROM usuarios WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, "i", $id_usuario);
+    $resultado = mysqli_stmt_execute($stmt);
     
     // Opcional: Podrías enviar un mensaje de éxito o error por una variable de sesión.
     if ($resultado) {
@@ -28,7 +29,7 @@ if (isset($_POST['id']) && !empty($_POST['id'])) {
         exit();
     } else {
         // Si hay error en la query de la base de datos
-        echo "Error al intentar eliminar el usuario: " . mysqli_error($conexion);
+        echo "Error al eliminar el usuario. Inténtalo de nuevo.";
     }
     
 } else {

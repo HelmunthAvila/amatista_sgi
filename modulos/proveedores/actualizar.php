@@ -15,19 +15,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !csrf_verificar()) {
 
 // Recibe los datos enviados desde el formulario de edición de proveedores
 $id       = intval($_POST['id']);
-$nombre   = mysqli_real_escape_string($conexion, $_POST['nombre']);
-$telefono = mysqli_real_escape_string($conexion, $_POST['telefono']);
-$empresa  = mysqli_real_escape_string($conexion, $_POST['empresa']);
+$nombre   = $_POST['nombre'];
+$telefono = $_POST['telefono'];
+$empresa  = $_POST['empresa'];
 
-// Consulta SQL para actualizar los datos del proveedor según su ID
-$sql = "UPDATE proveedores SET 
-        nombre = '$nombre', 
-        telefono = '$telefono', 
-        empresa = '$empresa' 
-        WHERE id = $id";
+// Consulta preparada para actualizar los datos del proveedor según su ID (AM-005)
+$stmt = mysqli_prepare($conexion, "UPDATE proveedores SET nombre = ?, telefono = ?, empresa = ? WHERE id = ?");
+mysqli_stmt_bind_param($stmt, "sssi", $nombre, $telefono, $empresa, $id);
 
 // Ejecuta la consulta de actualización
-if (mysqli_query($conexion, $sql)) {
+if (mysqli_stmt_execute($stmt)) {
     $_SESSION['alerta'] = [
         'tipo' => 'success',
         'mensaje' => '<strong>¡Actualizado!</strong> Los datos del proveedor se modificaron con éxito.'
@@ -35,9 +32,11 @@ if (mysqli_query($conexion, $sql)) {
 } else {
     $_SESSION['alerta'] = [
         'tipo' => 'danger',
-        'mensaje' => '<strong>Error:</strong> No se pudo actualizar la información del proveedor. ' . mysqli_error($conexion)
+        'mensaje' => '<strong>Error:</strong> No se pudo actualizar la información del proveedor.'
     ];
 }
+
+mysqli_stmt_close($stmt);
 
 // Redirige al listado sin ensuciar la URL
 header("Location: listar.php");

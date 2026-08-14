@@ -36,8 +36,11 @@ foreach($_SESSION['carrito'] as $item){
 mysqli_begin_transaction($conexion);
 
 try {
-    $query_venta = "INSERT INTO ventas (id_cliente, fecha, total) VALUES ('$id_cliente','$fecha','$total_venta')";
-    $resultado_venta = mysqli_query($conexion, $query_venta);
+    // Consultas preparadas (AM-005): cabecera, detalle y descuento de stock
+    $stmt_venta = mysqli_prepare($conexion, "INSERT INTO ventas (id_cliente, fecha, total) VALUES (?, ?, ?)");
+    mysqli_stmt_bind_param($stmt_venta, "iss", $id_cliente, $fecha, $total_venta);
+    $resultado_venta = mysqli_stmt_execute($stmt_venta);
+    mysqli_stmt_close($stmt_venta);
 
     if(!$resultado_venta){
         throw new Exception("Error al guardar la cabecera de la venta.");
@@ -50,13 +53,19 @@ try {
         $cantidad = intval($item['cantidad']);
         $precio = floatval($item['precio']);
 
-        $query_detalle = "INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario) VALUES ('$id_venta','$id_producto','$cantidad','$precio')";
-        if(!mysqli_query($conexion, $query_detalle)){
+        $stmt_detalle = mysqli_prepare($conexion, "INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario) VALUES (?, ?, ?, ?)");
+        mysqli_stmt_bind_param($stmt_detalle, "iiid", $id_venta, $id_producto, $cantidad, $precio);
+        $ok_detalle = mysqli_stmt_execute($stmt_detalle);
+        mysqli_stmt_close($stmt_detalle);
+        if(!$ok_detalle){
             throw new Exception("Error al registrar el detalle del producto ID: $id_producto");
         }
 
-        $update_stock = "UPDATE productos SET stock = stock - $cantidad WHERE id = $id_producto";
-        if(!mysqli_query($conexion, $update_stock)){
+        $stmt_stock = mysqli_prepare($conexion, "UPDATE productos SET stock = stock - ? WHERE id = ?");
+        mysqli_stmt_bind_param($stmt_stock, "ii", $cantidad, $id_producto);
+        $ok_stock = mysqli_stmt_execute($stmt_stock);
+        mysqli_stmt_close($stmt_stock);
+        if(!$ok_stock){
             throw new Exception("Error al descontar el inventario del producto ID: $id_producto");
         }
     }

@@ -26,10 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // 3. Obtener datos enviados desde el formulario
 
-    // Escapar caracteres para evitar inyección SQL
-    $nombre = mysqli_real_escape_string($conexion, $_POST['nombre']);
-    $usuario = mysqli_real_escape_string($conexion, $_POST['usuario']);
-    $rol = mysqli_real_escape_string($conexion, $_POST['rol']);
+    // Obtener datos enviados desde el formulario
+    $nombre = $_POST['nombre'];
+    $usuario = $_POST['usuario'];
+    $rol = $_POST['rol'];
 
     /*
     ----------------------------------------------------
@@ -50,14 +50,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     Se guarda el usuario con estado activo por defecto
     */
     $query = "INSERT INTO usuarios (nombre, usuario, password, rol, estado) 
-              VALUES ('$nombre', '$usuario', '$password_encriptada', '$rol', 1)";
+              VALUES (?, ?, ?, ?, 1)";
     
     /*
     ----------------------------------------------------
-    EJECUTAR CONSULTA
+    EJECUTAR CONSULTA PREPARADA (AM-005)
     ----------------------------------------------------
     */
-    if (mysqli_query($conexion, $query)) {
+    $stmt = mysqli_prepare($conexion, $query);
+    mysqli_stmt_bind_param($stmt, "ssss", $nombre, $usuario, $password_encriptada, $rol);
+    if (mysqli_stmt_execute($stmt)) {
 
         // Redirigir al listado de usuarios con mensaje de éxito
         header("Location: listar.php?msj=1");
@@ -65,7 +67,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } else {
 
         // Mostrar error si la consulta falla
-        echo "Error: " . mysqli_error($conexion);
+        echo "Error al registrar el usuario. Inténtalo de nuevo.";
 
     }
 }

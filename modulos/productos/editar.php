@@ -6,10 +6,13 @@ include("../../conexion.php");
 include("../../includes/header.php");
 
 // Obtiene el ID del producto enviado por la URL y lo sanea de inmediato
-$id = mysqli_real_escape_string($conexion, $_GET['id']);
+$id = intval($_GET['id']);
 
-// Consulta el producto específico en la base de datos
-$query = mysqli_query($conexion, "SELECT * FROM productos WHERE id = $id");
+// Consulta preparada (AM-005) el producto específico en la base de datos
+$stmt = mysqli_prepare($conexion, "SELECT * FROM productos WHERE id = ?");
+mysqli_stmt_bind_param($stmt, "i", $id);
+mysqli_stmt_execute($stmt);
+$query = mysqli_stmt_get_result($stmt);
 
 // Guarda los datos del producto en un arreglo
 $p = mysqli_fetch_array($query);

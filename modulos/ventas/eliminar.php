@@ -21,7 +21,11 @@ $id_venta = intval($_POST['id']);
 mysqli_begin_transaction($conexion);
 
 try {
-    $query_detalle = mysqli_query($conexion, "SELECT id_producto, cantidad FROM detalle_venta WHERE id_venta = $id_venta");
+    // Consultas preparadas (AM-005): restaurar stock y purgar registros
+    $stmt_detalle = mysqli_prepare($conexion, "SELECT id_producto, cantidad FROM detalle_venta WHERE id_venta = ?");
+    mysqli_stmt_bind_param($stmt_detalle, "i", $id_venta);
+    mysqli_stmt_execute($stmt_detalle);
+    $query_detalle = mysqli_stmt_get_result($stmt_detalle);
     
     if (!$query_detalle) {
         throw new Exception("Error al consultar el desglose de productos.");
@@ -31,20 +35,29 @@ try {
         $id_producto = $d['id_producto'];
         $cantidad = $d['cantidad'];
         
-        $update_stock = "UPDATE productos SET stock = stock + $cantidad WHERE id = $id_producto";
-        $resultado_stock = mysqli_query($conexion, $update_stock);
+        $stmt_stock = mysqli_prepare($conexion, "UPDATE productos SET stock = stock + ? WHERE id = ?");
+        mysqli_stmt_bind_param($stmt_stock, "ii", $cantidad, $id_producto);
+        $resultado_stock = mysqli_stmt_execute($stmt_stock);
+        mysqli_stmt_close($stmt_stock);
         
         if (!$resultado_stock) {
             throw new Exception("Error al restaurar las existencias en inventarios.");
         }
     }
+    mysqli_stmt_close($stmt_detalle);
 
-    $delete_detalle = mysqli_query($conexion, "DELETE FROM detalle_venta WHERE id_venta = $id_venta");
+    $stmt_del_detalle = mysqli_prepare($conexion, "DELETE FROM detalle_venta WHERE id_venta = ?");
+    mysqli_stmt_bind_param($stmt_del_detalle, "i", $id_venta);
+    $delete_detalle = mysqli_stmt_execute($stmt_del_detalle);
+    mysqli_stmt_close($stmt_del_detalle);
     if (!$delete_detalle) {
         throw new Exception("Error al purgar los registros hijos (detalle).");
     }
 
-    $delete_venta = mysqli_query($conexion, "DELETE FROM ventas WHERE id = $id_venta");
+    $stmt_del_venta = mysqli_prepare($conexion, "DELETE FROM ventas WHERE id = ?");
+    mysqli_stmt_bind_param($stmt_del_venta, "i", $id_venta);
+    $delete_venta = mysqli_stmt_execute($stmt_del_venta);
+    mysqli_stmt_close($stmt_del_venta);
     if (!$delete_venta) {
         throw new Exception("Error al eliminar el registro maestro de la venta.");
     }

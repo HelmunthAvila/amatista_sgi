@@ -26,7 +26,7 @@ $total_paginas = ceil($total_registros / $por_pagina);
 $productos = mysqli_query($conexion, "SELECT * FROM productos WHERE stock <= 5 ORDER BY stock ASC LIMIT $por_pagina OFFSET $offset");
 
 if (!$productos) {
-    die("Error en la consulta de stock bajo: " . mysqli_error($conexion));
+    die("Error al consultar la información. Inténtalo de nuevo.");
 }
 ?>
 

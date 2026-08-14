@@ -8,8 +8,11 @@ include("../../includes/header.php");
 // Obtiene el ID del cliente enviado desde el listado de forma segura
 $id = intval($_GET['id']);
 
-// Consulta la información del cliente seleccionado
-$query = mysqli_query($conexion, "SELECT * FROM clientes WHERE id = $id");
+// Consulta preparada (AM-005) la información del cliente seleccionado
+$stmt = mysqli_prepare($conexion, "SELECT * FROM clientes WHERE id = ?");
+mysqli_stmt_bind_param($stmt, "i", $id);
+mysqli_stmt_execute($stmt);
+$query = mysqli_stmt_get_result($stmt);
 $c = mysqli_fetch_assoc($query);
 
 if(!$c) {

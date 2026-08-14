@@ -10,10 +10,13 @@ if(!isset($_GET['id'])){
 $id_venta = intval($_GET['id']); // Validamos como entero por seguridad
 
 // 2. Consultar encabezado de la venta y datos del cliente
-$query_venta = mysqli_query($conexion, "SELECT v.*, c.nombre as cliente, c.telefono 
+$stmt_venta = mysqli_prepare($conexion, "SELECT v.*, c.nombre as cliente, c.telefono 
     FROM ventas v 
     INNER JOIN clientes c ON v.id_cliente = c.id 
-    WHERE v.id = $id_venta");
+    WHERE v.id = ?");
+mysqli_stmt_bind_param($stmt_venta, "i", $id_venta);
+mysqli_stmt_execute($stmt_venta);
+$query_venta = mysqli_stmt_get_result($stmt_venta);
 $venta = mysqli_fetch_array($query_venta);
 
 if(!$venta){
@@ -21,13 +24,16 @@ if(!$venta){
 }
 
 // 3. Selección con alias coincidente para el bucle
-$detalle = mysqli_query($conexion, "SELECT d.cantidad, d.precio_unitario as precio, p.nombre 
+$stmt_detalle = mysqli_prepare($conexion, "SELECT d.cantidad, d.precio_unitario as precio, p.nombre 
     FROM detalle_venta d 
     INNER JOIN productos p ON d.id_producto = p.id 
-    WHERE d.id_venta = $id_venta");
+    WHERE d.id_venta = ?");
+mysqli_stmt_bind_param($stmt_detalle, "i", $id_venta);
+mysqli_stmt_execute($stmt_detalle);
+$detalle = mysqli_stmt_get_result($stmt_detalle);
 
 if(!$detalle){
-    die("Error al consultar el detalle: " . mysqli_error($conexion));
+    die("Error al consultar el detalle. Inténtalo de nuevo.");
 }
 ?>
 

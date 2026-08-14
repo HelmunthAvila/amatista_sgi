@@ -26,11 +26,9 @@ la información en la base de datos.
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // 3. Obtener datos enviados desde el formulario
-    $id = $_POST['id'];
-
-    // Escapar caracteres especiales para evitar inyección SQL
-    $nombre = mysqli_real_escape_string($conexion, $_POST['nombre']);
-    $usuario = mysqli_real_escape_string($conexion, $_POST['usuario']);
+    $id = intval($_POST['id']);
+    $nombre = $_POST['nombre'];
+    $usuario = $_POST['usuario'];
 
     // Rol del usuario (admin, vendedor, etc.)
     $rol = $_POST['rol'];
@@ -43,42 +41,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     /*
     ----------------------------------------------------
-    CONSTRUCCIÓN DE LA CONSULTA SQL
+    CONSTRUCCIÓN DE LA CONSULTA SQL PREPARADA (AM-005)
     ----------------------------------------------------
-    Se actualizan los datos básicos del usuario
-    */
-    $sql = "UPDATE usuarios 
-            SET nombre='$nombre',
-                usuario='$usuario',
-                rol='$rol',
-                estado='$estado'";
-
-    /*
-    ----------------------------------------------------
-    VALIDAR SI SE CAMBIÓ LA CONTRASEÑA
-    ----------------------------------------------------
-    Si el campo password no está vacío,
-    se encripta la nueva contraseña y se agrega
-    a la consulta SQL
+    Si el campo password no está vacío se encripta y se
+    agrega a la actualización; en caso contrario se
+    conserva la contraseña actual del usuario.
     */
     if (!empty($pass)) {
-
-        // Encriptar contraseña usando algoritmo seguro
         $password_encriptada = password_hash($pass, PASSWORD_DEFAULT);
-
-        // Agregar contraseña al UPDATE
-        $sql .= ", password='$password_encriptada'";
+        $sql = "UPDATE usuarios SET nombre=?, usuario=?, rol=?, estado=?, password=? WHERE id=?";
+        $stmt = mysqli_prepare($conexion, $sql);
+        mysqli_stmt_bind_param($stmt, "sssssi", $nombre, $usuario, $rol, $estado, $password_encriptada, $id);
+    } else {
+        $sql = "UPDATE usuarios SET nombre=?, usuario=?, rol=?, estado=? WHERE id=?";
+        $stmt = mysqli_prepare($conexion, $sql);
+        mysqli_stmt_bind_param($stmt, "ssssi", $nombre, $usuario, $rol, $estado, $id);
     }
-
-    // Condición para actualizar solo el usuario seleccionado
-    $sql .= " WHERE id='$id'";
 
     /*
     ----------------------------------------------------
     EJECUTAR CONSULTA
     ----------------------------------------------------
     */
-    if (mysqli_query($conexion, $sql)) {
+    if (mysqli_stmt_execute($stmt)) {
 
         // Redirigir al listado de usuarios con mensaje de éxito
         header("Location: listar.php?msj=2");
@@ -86,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } else {
 
         // Mostrar error si falla la consulta
-        echo "Error al actualizar: " . mysqli_error($conexion);
+        echo "Error al actualizar el usuario. Inténtalo de nuevo.";
 
     }
 }

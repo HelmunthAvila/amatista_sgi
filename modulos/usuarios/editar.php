@@ -15,13 +15,16 @@ OBTENER DATOS DEL USUARIO A EDITAR
 Se recibe el ID del usuario por la URL
 ejemplo: editar.php?id=3
 */
-$id = $_GET['id'];
+$id = intval($_GET['id']);
 
 /* 
-Consultar la base de datos para obtener
-los datos actuales del usuario
+Consultar la base de datos (preparada, AM-005)
+para obtener los datos actuales del usuario
 */
-$resultado = mysqli_query($conexion, "SELECT * FROM usuarios WHERE id = '$id'");
+$stmt = mysqli_prepare($conexion, "SELECT * FROM usuarios WHERE id = ?");
+mysqli_stmt_bind_param($stmt, "i", $id);
+mysqli_stmt_execute($stmt);
+$resultado = mysqli_stmt_get_result($stmt);
 
 // Guardar los datos del usuario en un arreglo
 $u = mysqli_fetch_array($resultado);

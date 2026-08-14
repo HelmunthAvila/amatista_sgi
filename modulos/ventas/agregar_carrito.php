@@ -25,7 +25,10 @@ if($cantidad <= 0){
     exit();
 }
 
-$consulta = mysqli_query($conexion, "SELECT id, nombre, precio, stock FROM productos WHERE id = $id");
+$stmt = mysqli_prepare($conexion, "SELECT id, nombre, precio, stock FROM productos WHERE id = ?");
+mysqli_stmt_bind_param($stmt, "i", $id);
+mysqli_stmt_execute($stmt);
+$consulta = mysqli_stmt_get_result($stmt);
 
 if(!$consulta || mysqli_num_rows($consulta) == 0){
     $_SESSION['alerta'] = ['tipo' => 'danger', 'mensaje' => 'El producto seleccionado no existe en el sistema.'];

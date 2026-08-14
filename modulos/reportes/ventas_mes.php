@@ -40,7 +40,7 @@ $ventas = mysqli_query($conexion, "
 ");
 
 if (!$ventas) {
-    die("Error en la consulta de ventas del mes: " . mysqli_error($conexion));
+    die("Error al consultar la información. Inténtalo de nuevo.");
 }
 
 /*--------------------------------------------------

@@ -15,19 +15,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !csrf_verificar()) {
 
 // Recibe los datos enviados desde el formulario mediante POST
 $id       = intval($_POST['id']);
-$nombre   = mysqli_real_escape_string($conexion, $_POST['nombre']);
-$telefono = mysqli_real_escape_string($conexion, $_POST['telefono']);
-$email    = mysqli_real_escape_string($conexion, $_POST['email']);
+$nombre   = $_POST['nombre'];
+$telefono = $_POST['telefono'];
+$email    = $_POST['email'];
 
-// Consulta SQL para actualizar los datos del cliente seleccionado
-$sql = "UPDATE clientes SET 
-        nombre = '$nombre', 
-        telefono = '$telefono', 
-        email = '$email' 
-        WHERE id = $id";
+// Consulta preparada para actualizar los datos del cliente seleccionado (AM-005)
+$stmt = mysqli_prepare($conexion, "UPDATE clientes SET nombre = ?, telefono = ?, email = ? WHERE id = ?");
+mysqli_stmt_bind_param($stmt, "sssi", $nombre, $telefono, $email, $id);
 
 // Ejecuta la consulta en la base de datos
-if (mysqli_query($conexion, $sql)) {
+if (mysqli_stmt_execute($stmt)) {
     $_SESSION['alerta'] = [
         'tipo' => 'success',
         'mensaje' => '<strong>¡Actualizado!</strong> Los datos del cliente se modificaron con éxito.'
@@ -35,9 +32,11 @@ if (mysqli_query($conexion, $sql)) {
 } else {
     $_SESSION['alerta'] = [
         'tipo' => 'danger',
-        'mensaje' => '<strong>Error:</strong> No se pudo actualizar la información del cliente. ' . mysqli_error($conexion)
+        'mensaje' => '<strong>Error:</strong> No se pudo actualizar la información del cliente.'
     ];
 }
+
+mysqli_stmt_close($stmt);
 
 // Redirige al listado sin ensuciar la URL
 header("Location: listar.php");

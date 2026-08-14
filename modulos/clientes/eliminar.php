@@ -17,13 +17,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !csrf_verificar()) {
 if (isset($_POST['id'])) {
 
     // Limpia el valor del ID
-    $id = mysqli_real_escape_string($conexion, $_POST['id']);
+    $id = intval($_POST['id']);
 
-    // Consulta SQL para eliminar el cliente seleccionado
-    $sql = "DELETE FROM clientes WHERE id = '$id'";
+    // Consulta preparada para eliminar el cliente seleccionado (AM-005)
+    $stmt = mysqli_prepare($conexion, "DELETE FROM clientes WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, "i", $id);
 
     // Ejecuta la consulta de eliminación
-    if (mysqli_query($conexion, $sql)) {
+    if (mysqli_stmt_execute($stmt)) {
         $_SESSION['alerta'] = [
             'tipo' => 'success',
             'mensaje' => '<strong>¡Eliminado!</strong> El cliente ha sido retirado del sistema.'

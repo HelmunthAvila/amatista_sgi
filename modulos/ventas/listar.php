@@ -14,11 +14,11 @@ if ($pagina_actual < 1) { $pagina_actual = 1; }
 // 3. Calcular el offset (inicio del límite para SQL)
 $offset = ($pagina_actual - 1) * $por_pagina;
 
-// Filtros de fecha (valor crudo para salida, escapado para SQL)
-$fecha_inicio_raw = $_GET['fecha_inicio'] ?? '';
-$fecha_fin_raw = $_GET['fecha_fin'] ?? '';
-$fecha_inicio = mysqli_real_escape_string($conexion, $fecha_inicio_raw);
-$fecha_fin = mysqli_real_escape_string($conexion, $fecha_fin_raw);
+// Filtros de fecha (valor crudo para salida; consulta preparada con bind)
+$fecha_inicio = $_GET['fecha_inicio'] ?? '';
+$fecha_fin = $_GET['fecha_fin'] ?? '';
+$fecha_inicio_raw = $fecha_inicio;
+$fecha_fin_raw = $fecha_fin;
 
 // --- CONSULTA PARA CONTAR EL TOTAL DE REGISTROS (Necesario para la paginación) ---
 $query_conteo = "SELECT COUNT(*) as total_registros 
@@ -26,12 +26,22 @@ $query_conteo = "SELECT COUNT(*) as total_registros
                  INNER JOIN clientes c ON v.id_cliente = c.id
                  WHERE 1=1";
 
-if(!empty($fecha_inicio)){ $query_conteo .= " AND DATE(v.fecha) >= '$fecha_inicio'"; }
-if(!empty($fecha_fin)){ $query_conteo .= " AND DATE(v.fecha) <= '$fecha_fin'"; }
+if(!empty($fecha_inicio)){ $query_conteo .= " AND DATE(v.fecha) >= ?"; }
+if(!empty($fecha_fin)){ $query_conteo .= " AND DATE(v.fecha) <= ?"; }
 
-$resultado_conteo = mysqli_query($conexion, $query_conteo);
-$fila_conteo = mysqli_fetch_assoc($resultado_conteo);
+// Conteo con consulta preparada (AM-005)
+$stmt_conteo = mysqli_prepare($conexion, $query_conteo);
+if (!empty($fecha_inicio) && !empty($fecha_fin)) {
+    mysqli_stmt_bind_param($stmt_conteo, "ss", $fecha_inicio, $fecha_fin);
+} elseif (!empty($fecha_inicio)) {
+    mysqli_stmt_bind_param($stmt_conteo, "s", $fecha_inicio);
+} elseif (!empty($fecha_fin)) {
+    mysqli_stmt_bind_param($stmt_conteo, "s", $fecha_fin);
+}
+mysqli_stmt_execute($stmt_conteo);
+$fila_conteo = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_conteo));
 $total_registros = $fila_conteo['total_registros'];
+mysqli_stmt_close($stmt_conteo);
 
 // Calcular el total de páginas necesarias
 $total_paginas = ceil($total_registros / $por_pagina);
@@ -43,13 +53,24 @@ $query = "SELECT v.id, v.fecha, v.total, c.nombre as cliente
           INNER JOIN clientes c ON v.id_cliente = c.id
           WHERE 1=1";
 
-if(!empty($fecha_inicio)){ $query .= " AND DATE(v.fecha) >= '$fecha_inicio'"; }
-if(!empty($fecha_fin)){ $query .= " AND DATE(v.fecha) <= '$fecha_fin'"; }
+if(!empty($fecha_inicio)){ $query .= " AND DATE(v.fecha) >= ?"; }
+if(!empty($fecha_fin)){ $query .= " AND DATE(v.fecha) <= ?"; }
 
 $query .= " ORDER BY v.fecha DESC LIMIT $por_pagina OFFSET $offset";
-$ventas = mysqli_query($conexion, $query);
 
-if(!$ventas){ die("Error en consulta: ".mysqli_error($conexion)); }
+// Consulta principal preparada (AM-005)
+$stmt = mysqli_prepare($conexion, $query);
+if (!empty($fecha_inicio) && !empty($fecha_fin)) {
+    mysqli_stmt_bind_param($stmt, "ss", $fecha_inicio, $fecha_fin);
+} elseif (!empty($fecha_inicio)) {
+    mysqli_stmt_bind_param($stmt, "s", $fecha_inicio);
+} elseif (!empty($fecha_fin)) {
+    mysqli_stmt_bind_param($stmt, "s", $fecha_fin);
+}
+mysqli_stmt_execute($stmt);
+$ventas = mysqli_stmt_get_result($stmt);
+
+if(!$ventas){ die("Error al consultar la información. Inténtalo de nuevo."); }
 
 // Conservar los filtros activos al cambiar de página
 $params_busqueda = "";

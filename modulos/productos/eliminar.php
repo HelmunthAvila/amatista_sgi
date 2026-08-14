@@ -16,19 +16,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !csrf_verificar()) {
 // Verifica que se haya recibido el ID del producto por la URL
 if (isset($_POST['id'])) {
 
-    // Limpia el ID recibido para evitar inyección SQL
-    $id = mysqli_real_escape_string($conexion, $_POST['id']);
+    // Limpia el ID recibido
+    $id = intval($_POST['id']);
 
     // Consultamos el nombre antes de eliminarlo para el mensaje informativo personalizado
-    $buscar_producto = mysqli_query($conexion, "SELECT nombre FROM productos WHERE id = $id");
-    $resultado = mysqli_fetch_assoc($buscar_producto);
+    $stmt_nombre = mysqli_prepare($conexion, "SELECT nombre FROM productos WHERE id = ?");
+    mysqli_stmt_bind_param($stmt_nombre, "i", $id);
+    mysqli_stmt_execute($stmt_nombre);
+    $resultado = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_nombre));
     $nombre_producto = $resultado ? $resultado['nombre'] : 'Desconocido';
+    mysqli_stmt_close($stmt_nombre);
 
-    // Ejecuta la consulta SQL para eliminar el producto
-    $query = mysqli_query($conexion, "DELETE FROM productos WHERE id = $id");
+    // Ejecuta la consulta preparada para eliminar el producto (AM-005)
+    $stmt = mysqli_prepare($conexion, "DELETE FROM productos WHERE id = ?");
+    mysqli_stmt_bind_param($stmt, "i", $id);
 
     // Verifica si la eliminación fue exitosa e inyecta la alerta en sesión
-    if ($query) {
+    if (mysqli_stmt_execute($stmt)) {
         $_SESSION['alerta'] = [
             'tipo' => 'success',
             'mensaje' => '<strong>¡Producto eliminado!</strong> El modelo <strong>"' . htmlspecialchars($nombre_producto) . '"</strong> fue removido del inventario.'
@@ -46,6 +50,7 @@ if (isset($_POST['id'])) {
         'mensaje' => '<strong>Error:</strong> No se especificó un ID de producto válido.'
     ];
 }
+mysqli_stmt_close($stmt);
 
 // Redirección al módulo maestro
 header("Location: listar.php");
