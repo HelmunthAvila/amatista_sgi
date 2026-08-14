@@ -8,9 +8,10 @@ if (session_status() === PHP_SESSION_NONE) {
 $archivo_actual = $_SERVER['PHP_SELF'];
 $base = (strpos($archivo_actual, '/modulos/') !== false) ? "../../" : "";
 
-// Seguridad básica
-if (!isset($_SESSION['usuario'])) {
-    // header("Location: " . $base . "index.php"); 
+// Seguridad básica: valida sesión activa (defensa en profundidad junto con includes/sesion.php)
+if (!isset($_SESSION['id_usuario'])) {
+    header("Location: " . $base . "login.php");
+    exit();
 }
 ?>
 <!DOCTYPE html>

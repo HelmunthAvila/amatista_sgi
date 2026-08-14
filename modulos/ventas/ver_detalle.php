@@ -1,5 +1,6 @@
 <?php
-session_start();
+include("../../includes/sesion.php");
+
 include("../../conexion.php");
 include("../../includes/header.php");
 
@@ -81,11 +82,11 @@ $query_detalle = mysqli_query($conexion, "SELECT dv.cantidad, dv.precio_unitario
                     
                     <div class="mb-3">
                         <label class="text-muted small d-block mb-1">Cliente Receptor</label>
-                        <span class="fw-bold text-dark"><?php echo $venta['nombre']; ?></span>
+                        <span class="fw-bold text-dark"><?php echo htmlspecialchars($venta['nombre']); ?></span>
                     </div>
                     <div class="mb-3">
                         <label class="text-muted small d-block mb-1">Teléfono de Contacto</label>
-                        <span class="text-dark fw-semibold"><?php echo !empty($venta['telefono']) ? $venta['telefono'] : 'No registrado'; ?></span>
+                        <span class="text-dark fw-semibold"><?php echo htmlspecialchars(!empty($venta['telefono']) ? $venta['telefono'] : 'No registrado'); ?></span>
                     </div>
                     <div class="mb-0">
                         <label class="text-muted small d-block mb-1">Fecha de Procesamiento</label>
@@ -114,7 +115,7 @@ $query_detalle = mysqli_query($conexion, "SELECT dv.cantidad, dv.precio_unitario
                                 $subtotal_item = $d['precio_unitario'] * $d['cantidad'];
                             ?>
                                 <tr class="border-bottom">
-                                    <td class="ps-4 fw-semibold text-dark"><?php echo $d['producto']; ?></td>
+                                    <td class="ps-4 fw-semibold text-dark"><?php echo htmlspecialchars($d['producto']); ?></td>
                                     <td class="text-secondary">$<?php echo number_format($d['precio_unitario'], 0, ',', '.'); ?></td>
                                     <td><span class="badge bg-light text-dark border px-3 py-2 rounded-3">x <?php echo $d['cantidad']; ?></span></td>
                                     <td class="text-end pe-4 fw-bold text-dark">$<?php echo number_format($subtotal_item, 0, ',', '.'); ?></td>

@@ -1,6 +1,6 @@
 <?php
+include("../../includes/sesion.php");
 // Inicia la sesión para administrar flujos informativos
-session_start();
 
 // Incluye el archivo de conexión a la base de datos
 include("../../conexion.php");
@@ -23,7 +23,7 @@ $sql = "INSERT INTO productos (nombre, marca, talla, color, precio, stock)
 if (mysqli_query($conexion, $sql)) {
     $_SESSION['alerta'] = [
         'tipo' => 'success',
-        'mensaje' => '<strong>¡Producto agregado!</strong> El modelo <strong>"' . $nombre . '"</strong> se registró correctamente en el inventario.'
+        'mensaje' => '<strong>¡Producto agregado!</strong> El modelo <strong>"' . htmlspecialchars($nombre) . '"</strong> se registró correctamente en el inventario.'
     ];
 } else {
     $_SESSION['alerta'] = [

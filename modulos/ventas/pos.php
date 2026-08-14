@@ -1,5 +1,6 @@
 <?php
-session_start();
+include("../../includes/sesion.php");
+
 include("../../conexion.php");
 include("../../includes/header.php");
 
@@ -130,7 +131,7 @@ if(!isset($_SESSION['carrito'])){
                                 <option value="">Seleccionar producto...</option>
                                 <?php while($p = mysqli_fetch_array($productos)){ ?>
                                     <option value="<?php echo $p['id']; ?>">
-                                        <?php echo $p['nombre']." (Stock: ".$p['stock'].") - $".number_format($p['precio'], 0, ',', '.'); ?>
+                                        <?php echo htmlspecialchars($p['nombre'])." (Stock: ".$p['stock'].") - $".number_format($p['precio'], 0, ',', '.'); ?>
                                     </option>
                                 <?php } ?>
                             </select>
@@ -177,7 +178,7 @@ if(!isset($_SESSION['carrito'])){
                                     $total += $subtotal;
                             ?>
                                     <tr class="border-bottom">
-                                        <td class="ps-4 fw-semibold text-dark"><?php echo $item['nombre']; ?></td>
+                                        <td class="ps-4 fw-semibold text-dark"><?php echo htmlspecialchars($item['nombre']); ?></td>
                                         <td class="text-secondary">$<?php echo number_format($item['precio'], 0, ',', '.'); ?></td>
                                         <td><span class="badge badge-quantity">Cant: <?php echo $item['cantidad']; ?> und.</span></td>
                                         <td class="fw-bold text-amatista">$<?php echo number_format($subtotal, 0, ',', '.'); ?></td>

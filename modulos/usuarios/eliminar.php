@@ -1,4 +1,5 @@
 <?php
+include("../../includes/sesion.php");
 // 1. Incluimos la conexión a la base de datos usando la ruta correcta
 include("../../conexion.php");
 

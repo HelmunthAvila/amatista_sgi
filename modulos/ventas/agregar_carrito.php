@@ -1,5 +1,6 @@
 <?php
-session_start();
+include("../../includes/sesion.php");
+
 include("../../conexion.php");
 
 if(!isset($_POST['producto_id']) || !isset($_POST['cantidad'])){
@@ -28,7 +29,7 @@ if(!$consulta || mysqli_num_rows($consulta) == 0){
 $p = mysqli_fetch_assoc($consulta);
 
 if($cantidad > $p['stock']){
-    $_SESSION['alerta'] = ['tipo' => 'danger', 'mensaje' => "Stock insuficiente para <strong>{$p['nombre']}</strong>. Máximo disponible: {$p['stock']} unds."];
+    $_SESSION['alerta'] = ['tipo' => 'danger', 'mensaje' => "Stock insuficiente para <strong>" . htmlspecialchars($p['nombre']) . "</strong>. Máximo disponible: {$p['stock']} unds."];
     header("Location: pos.php");
     exit();
 }
@@ -42,7 +43,7 @@ foreach($_SESSION['carrito'] as $index => $item){
     if($item['id'] == $id){
         // Validación adicional: Evitar que la suma del carrito supere el stock real
         if(($_SESSION['carrito'][$index]['cantidad'] + $cantidad) > $p['stock']){
-            $_SESSION['alerta'] = ['tipo' => 'danger', 'mensaje' => "No puedes agregar más unidades. El total acumulado en el carrito supera el stock de <strong>{$p['nombre']}</strong>."];
+            $_SESSION['alerta'] = ['tipo' => 'danger', 'mensaje' => "No puedes agregar más unidades. El total acumulado en el carrito supera el stock de <strong>" . htmlspecialchars($p['nombre']) . "</strong>."];
             header("Location: pos.php");
             exit();
         }
@@ -62,7 +63,7 @@ if(!$producto_encontrado){
     $_SESSION['carrito'][] = $item;
 }
 
-$_SESSION['alerta'] = ['tipo' => 'success', 'mensaje' => "Se añadió <strong>{$p['nombre']}</strong> ({$cantidad} unds.) al carrito."];
+$_SESSION['alerta'] = ['tipo' => 'success', 'mensaje' => "Se añadió <strong>" . htmlspecialchars($p['nombre']) . "</strong> ({$cantidad} unds.) al carrito."];
 header("Location: pos.php");
 exit();
 ?>

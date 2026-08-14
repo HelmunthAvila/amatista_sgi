@@ -1,4 +1,5 @@
 <?php
+include("../../includes/sesion.php");
 
 // 1. Conexión a la base de datos
 include("../../conexion.php");
@@ -120,7 +121,7 @@ ORDER BY ventas.fecha DESC
 <!-- Nombre del cliente -->
 <td>
 <i class="bi bi-person text-primary me-2"></i>
-<?php echo $v['nombre']; ?>
+<?php echo htmlspecialchars($v['nombre']); ?>
 </td>
 
 <!-- Fecha de la venta -->

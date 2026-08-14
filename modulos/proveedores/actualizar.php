@@ -1,6 +1,6 @@
 <?php
+include("../../includes/sesion.php");
 // Iniciamos sesión para interactuar con el sistema de notificaciones
-session_start();
 
 // Incluye el archivo de conexión a la base de datos
 include("../../conexion.php");

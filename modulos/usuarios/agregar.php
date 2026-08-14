@@ -1,4 +1,5 @@
 <?php
+include("../../includes/sesion.php");
 
 // 1. Conexión a la base de datos
 include("../../conexion.php");

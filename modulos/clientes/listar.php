@@ -1,6 +1,6 @@
 <?php
+include("../../includes/sesion.php");
 // Iniciamos sesión al principio para renderizar las notificaciones instantáneas
-session_start();
 
 // Incluye la conexión a la base de datos y el encabezado general del sistema
 include("../../conexion.php");
@@ -225,10 +225,10 @@ if(!empty($busqueda)){ $params_busqueda .= "&busqueda=" . urlencode($busqueda); 
                             <td>
                                 <div class="d-flex flex-column">
                                     <?php if(!empty($c['telefono'])): ?>
-                                        <a href="tel:<?php echo $tel_limpio; ?>" class="text-decoration-none text-dark mb-1 small fw-semibold">
+                                        <a href="tel:<?php echo htmlspecialchars($tel_limpio); ?>" class="text-decoration-none text-dark mb-1 small fw-semibold">
                                             <i class="bi bi-telephone-fill text-primary me-2"></i><?php echo htmlspecialchars($c['telefono']); ?>
                                         </a>
-                                        <a href="https://wa.me/57<?php echo $tel_limpio; ?>" target="_blank" class="text-success text-decoration-none small fw-bold d-flex align-items-center">
+                                        <a href="https://wa.me/57<?php echo htmlspecialchars($tel_limpio); ?>" target="_blank" class="text-success text-decoration-none small fw-bold d-flex align-items-center">
                                             <i class="bi bi-whatsapp me-1"></i> Enviar Mensaje
                                         </a>
                                     <?php else: ?>

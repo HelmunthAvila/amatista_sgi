@@ -1,4 +1,5 @@
 <?php
+include("../../includes/sesion.php");
 // Incluir el archivo de conexión a la base de datos y el encabezado del sistema
 include("../../conexion.php");
 include("../../includes/header.php");

@@ -158,7 +158,7 @@ CREATE TABLE IF NOT EXISTS `detalle_venta` (
   `cantidad` int NOT NULL,
   `precio_unitario` decimal(10,2) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=407 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=407 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `detalle_venta`
@@ -786,7 +786,7 @@ CREATE TABLE IF NOT EXISTS `usuarios` (
   `fecha_registro` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `usuario` (`usuario`)
-) ENGINE=MyISAM AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `usuarios`
@@ -810,7 +810,7 @@ CREATE TABLE IF NOT EXISTS `ventas` (
   `fecha` datetime NOT NULL,
   `total` decimal(10,2) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=MyISAM AUTO_INCREMENT=105 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=105 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `ventas`
@@ -926,3 +926,18 @@ COMMIT;
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+-- --------------------------------------------------------
+-- FASE 1 (AM-002): INTEGRIDAD REFERENCIAL (InnoDB + FKs)
+-- --------------------------------------------------------
+-- Cliente genérico para ventas históricas sin cliente asignado (id_cliente = 0 o cliente eliminado)
+INSERT INTO `clientes` (`nombre`, `telefono`, `email`) VALUES ('Cliente Mostrador', '', '');
+UPDATE `ventas` SET `id_cliente` = LAST_INSERT_ID()
+WHERE `id_cliente` = 0 OR `id_cliente` NOT IN (SELECT `id` FROM `clientes`);
+
+ALTER TABLE `ventas`
+  ADD CONSTRAINT `fk_ventas_cliente` FOREIGN KEY (`id_cliente`) REFERENCES `clientes` (`id`);
+
+ALTER TABLE `detalle_venta`
+  ADD CONSTRAINT `fk_detalle_venta` FOREIGN KEY (`id_venta`) REFERENCES `ventas` (`id`),
+  ADD CONSTRAINT `fk_detalle_producto` FOREIGN KEY (`id_producto`) REFERENCES `productos` (`id`);

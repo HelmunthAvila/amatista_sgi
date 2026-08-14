@@ -67,7 +67,7 @@ $datos_anual = [
             <button class="btn btn-white shadow-sm rounded-pill px-4 py-2 border dropdown-toggle" type="button" data-bs-toggle="dropdown">
                 <i class="bi bi-person-circle me-2" style="color: #6f42c1 !important;"></i>
                 <span class="text-muted me-2">Hola,</span>
-                <strong class="text-dark"><?php echo $_SESSION['nombre_usuario'] ?? 'Usuario'; ?></strong>
+                <strong class="text-dark"><?php echo htmlspecialchars($_SESSION['nombre_usuario'] ?? 'Usuario'); ?></strong>
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-4 mt-2">
                 <?php if(isset($_SESSION['rol']) && $_SESSION['rol'] == 'admin'): ?>
@@ -167,7 +167,7 @@ $datos_anual = [
                                 <?php while($p = mysqli_fetch_assoc($stock_bajo)): ?>
                                 <tr>
                                     <td class="ps-3 fw-bold small text-dark"><?php echo htmlspecialchars($p['nombre']); ?></td>
-                                    <td><span class="badge bg-light text-dark border">T: <?php echo $p['talla']; ?></span></td>
+                                    <td><span class="badge bg-light text-dark border">T: <?php echo htmlspecialchars($p['talla']); ?></span></td>
                                     <td class="text-center">
                                         <span class="badge bg-danger-subtle text-danger rounded-pill px-2.5 py-1.5 fw-bold" style="font-size: 0.75rem;">
                                             <?php echo $p['stock']; ?> und.

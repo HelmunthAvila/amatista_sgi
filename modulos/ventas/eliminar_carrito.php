@@ -1,5 +1,5 @@
 <?php
-session_start();
+include("../../includes/sesion.php");
 
 if(!isset($_SESSION['carrito'])){
     header("Location: pos.php");
@@ -14,7 +14,7 @@ if(isset($_GET['id'])){
         unset($_SESSION['carrito'][$index]);
         $_SESSION['carrito'] = array_values($_SESSION['carrito']); // Reindexar
         
-        $_SESSION['alerta'] = ['tipo' => 'success', 'mensaje' => "Se quitó <strong>{$nombre_prod}</strong> del carrito de compras."];
+        $_SESSION['alerta'] = ['tipo' => 'success', 'mensaje' => "Se quitó <strong>" . htmlspecialchars($nombre_prod) . "</strong> del carrito de compras."];
     } else {
         $_SESSION['alerta'] = ['tipo' => 'danger', 'mensaje' => 'El ítem que intenta remover no pertenece al carrito activo.'];
     }
