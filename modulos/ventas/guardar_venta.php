@@ -1,5 +1,6 @@
 <?php
-session_start();
+include("../../includes/sesion.php");
+
 include("../../conexion.php");
 
 if(!isset($_SESSION['carrito']) || empty($_SESSION['carrito'])){

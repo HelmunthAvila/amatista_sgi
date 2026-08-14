@@ -1,6 +1,6 @@
 <?php
+include("../../includes/sesion.php");
 // Iniciamos sesión al principio para renderizar las notificaciones instantáneas
-session_start();
 
 // Incluye la conexión a la base de datos y el encabezado general del sistema
 include("../../conexion.php");

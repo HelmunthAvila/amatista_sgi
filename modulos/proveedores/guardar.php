@@ -1,6 +1,6 @@
 <?php
+include("../../includes/sesion.php");
 // Iniciamos sesión para gestionar las alertas estructuradas
-session_start();
 
 // Incluir el archivo de conexión a la base de datos
 include("../../conexion.php");

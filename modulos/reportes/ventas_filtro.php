@@ -1,6 +1,6 @@
 <?php
+include("../../includes/sesion.php");
 // Iniciamos sesión al principio para renderizar las notificaciones instantáneas
-session_start();
 
 // 1. Incluir conexión a la base de datos
 include("../../conexion.php");
@@ -9,10 +9,12 @@ include("../../conexion.php");
 include("../../includes/header.php");
 
 // Capturar y validar las fechas del formulario o de la URL (para la paginación)
-$fecha_inicio = isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : '';
-$fecha_fin = isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : '';
+$fecha_inicio_raw = isset($_GET['fecha_inicio']) ? $_GET['fecha_inicio'] : '';
+$fecha_fin_raw = isset($_GET['fecha_fin']) ? $_GET['fecha_fin'] : '';
+$fecha_inicio = mysqli_real_escape_string($conexion, $fecha_inicio_raw);
+$fecha_fin = mysqli_real_escape_string($conexion, $fecha_fin_raw);
 
-if (empty($fecha_inicio) || empty($fecha_fin)) {
+if (empty($fecha_inicio_raw) || empty($fecha_fin_raw)) {
     echo "<div class='container mt-4'><div class='alert alert-danger'>Por favor, seleccione un rango de fechas válido.</div></div>";
     include("../../includes/footer.php");
     exit;
@@ -125,7 +127,7 @@ $total_rango = $total_filtro_data['total_rango'] ?? 0;
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h2 class="fw-bold mb-1 text-dark" style="letter-spacing: -0.5px;">Resultados del Filtro</h2>
-            <p class="text-muted small mb-0">Ventas reportadas desde el <strong><?php echo $fecha_inicio; ?></strong> hasta el <strong><?php echo $fecha_fin; ?></strong>.</p>
+            <p class="text-muted small mb-0">Ventas reportadas desde el <strong><?php echo htmlspecialchars($fecha_inicio_raw); ?></strong> hasta el <strong><?php echo htmlspecialchars($fecha_fin_raw); ?></strong>.</p>
         </div>
     </div>
 
@@ -139,8 +141,8 @@ $total_rango = $total_filtro_data['total_rango'] ?? 0;
         </div>
 
         <form method="GET" action="ventas_filtro.php" class="d-flex gap-2 align-items-center">
-            <input type="date" name="fecha_inicio" value="<?php echo $fecha_inicio; ?>" class="form-control form-control-custom" required>
-            <input type="date" name="fecha_fin" value="<?php echo $fecha_fin; ?>" class="form-control form-control-custom" required>
+            <input type="date" name="fecha_inicio" value="<?php echo htmlspecialchars($fecha_inicio_raw); ?>" class="form-control form-control-custom" required>
+            <input type="date" name="fecha_fin" value="<?php echo htmlspecialchars($fecha_fin_raw); ?>" class="form-control form-control-custom" required>
             <button type="submit" class="btn btn-amatista-primary rounded-pill px-4 shadow-sm"><i class="bi bi-search me-1"></i> Filtrar</button>
         </form>
     </div>
@@ -207,15 +209,15 @@ $total_rango = $total_filtro_data['total_rango'] ?? 0;
             <nav>
                 <ul class="pagination pagination-sm mb-0 shadow-sm rounded-3 bg-white p-1">
                     <li class="page-item <?php echo ($pagina_actual <= 1) ? 'disabled' : ''; ?>">
-                        <a class="page-link" href="?fecha_inicio=<?php echo $fecha_inicio; ?>&fecha_fin=<?php echo $fecha_fin; ?>&pagina=<?php echo $pagina_actual - 1; ?>">&laquo; Anterior</a>
+                        <a class="page-link" href="?fecha_inicio=<?php echo urlencode($fecha_inicio_raw); ?>&fecha_fin=<?php echo urlencode($fecha_fin_raw); ?>&pagina=<?php echo $pagina_actual - 1; ?>">&laquo; Anterior</a>
                     </li>
                     <?php for($i = 1; $i <= $total_paginas; $i++): ?>
                         <li class="page-item <?php echo ($pagina_actual == $i) ? 'active' : ''; ?>">
-                            <a class="page-link" href="?fecha_inicio=<?php echo $fecha_inicio; ?>&fecha_fin=<?php echo $fecha_fin; ?>&pagina=<?php echo $i; ?>"><?php echo $i; ?></a>
+                            <a class="page-link" href="?fecha_inicio=<?php echo urlencode($fecha_inicio_raw); ?>&fecha_fin=<?php echo urlencode($fecha_fin_raw); ?>&pagina=<?php echo $i; ?>"><?php echo $i; ?></a>
                         </li>
                     <?php endfor; ?>
                     <li class="page-item <?php echo ($pagina_actual >= $total_paginas) ? 'disabled' : ''; ?>">
-                        <a class="page-link" href="?fecha_inicio=<?php echo $fecha_inicio; ?>&fecha_fin=<?php echo $fecha_fin; ?>&pagina=<?php echo $pagina_actual + 1; ?>">Siguiente &raquo;</a>
+                        <a class="page-link" href="?fecha_inicio=<?php echo urlencode($fecha_inicio_raw); ?>&fecha_fin=<?php echo urlencode($fecha_fin_raw); ?>&pagina=<?php echo $pagina_actual + 1; ?>">Siguiente &raquo;</a>
                     </li>
                 </ul>
             </nav>

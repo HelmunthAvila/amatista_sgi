@@ -1,6 +1,6 @@
 <?php
+include("../../includes/sesion.php");
 // Iniciamos sesión para mandar mensajes fluidos
-session_start();
 
 // Incluye el archivo de conexión a la base de datos
 include("../../conexion.php");
@@ -23,12 +23,12 @@ if (isset($_GET['id'])) {
     if ($query) {
         $_SESSION['alerta'] = [
             'tipo' => 'success',
-            'mensaje' => '<strong>¡Producto eliminado!</strong> El modelo <strong>"' . $nombre_producto . '"</strong> fue removido del inventario.'
+            'mensaje' => '<strong>¡Producto eliminado!</strong> El modelo <strong>"' . htmlspecialchars($nombre_producto) . '"</strong> fue removido del inventario.'
         ];
     } else {
         $_SESSION['alerta'] = [
             'tipo' => 'danger',
-            'mensaje' => '<strong>Error al eliminar:</strong> El modelo <strong>"' . $nombre_producto . '"</strong> tiene facturas asociadas en el POS y no se puede borrar.'
+            'mensaje' => '<strong>Error al eliminar:</strong> El modelo <strong>"' . htmlspecialchars($nombre_producto) . '"</strong> tiene facturas asociadas en el POS y no se puede borrar.'
         ];
     }
 

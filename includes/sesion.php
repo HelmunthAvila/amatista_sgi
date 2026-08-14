@@ -1,6 +1,8 @@
-// Control de acceso: valida sesión del usuario y evita acceso directo a módulos sin autenticación
 <?php
-session_start();
+// Control de acceso: valida sesión del usuario y evita acceso directo a módulos sin autenticación
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 if(!isset($_SESSION['id_usuario'])){
     header("Location: ../../login.php");
     exit();

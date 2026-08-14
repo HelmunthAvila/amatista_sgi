@@ -1,6 +1,6 @@
 <?php
+include("../../includes/sesion.php");
 // Inicia la sesión para almacenar el estado de la alerta corporativa
-session_start();
 
 // Incluye el archivo de conexión a la base de datos
 include("../../conexion.php");
@@ -32,7 +32,7 @@ $sql = "UPDATE productos SET
 if (mysqli_query($conexion, $sql)) {
     $_SESSION['alerta'] = [
         'tipo' => 'success',
-        'mensaje' => '<strong>¡Producto modificado!</strong> Los cambios en el modelo <strong>"' . $nombre . '"</strong> fueron guardados con éxito.'
+        'mensaje' => '<strong>¡Producto modificado!</strong> Los cambios en el modelo <strong>"' . htmlspecialchars($nombre) . '"</strong> fueron guardados con éxito.'
     ];
 } else {
     $_SESSION['alerta'] = [

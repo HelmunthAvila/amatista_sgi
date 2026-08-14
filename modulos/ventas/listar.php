@@ -1,5 +1,6 @@
 <?php
-session_start();
+include("../../includes/sesion.php");
+
 include("../../conexion.php");
 include("../../includes/header.php");
 
@@ -13,9 +14,11 @@ if ($pagina_actual < 1) { $pagina_actual = 1; }
 // 3. Calcular el offset (inicio del límite para SQL)
 $offset = ($pagina_actual - 1) * $por_pagina;
 
-// Filtros de fecha
-$fecha_inicio = $_GET['fecha_inicio'] ?? '';
-$fecha_fin = $_GET['fecha_fin'] ?? '';
+// Filtros de fecha (valor crudo para salida, escapado para SQL)
+$fecha_inicio_raw = $_GET['fecha_inicio'] ?? '';
+$fecha_fin_raw = $_GET['fecha_fin'] ?? '';
+$fecha_inicio = mysqli_real_escape_string($conexion, $fecha_inicio_raw);
+$fecha_fin = mysqli_real_escape_string($conexion, $fecha_fin_raw);
 
 // --- CONSULTA PARA CONTAR EL TOTAL DE REGISTROS (Necesario para la paginación) ---
 $query_conteo = "SELECT COUNT(*) as total_registros 
@@ -50,8 +53,8 @@ if(!$ventas){ die("Error en consulta: ".mysqli_error($conexion)); }
 
 // Conservar los filtros activos al cambiar de página
 $params_busqueda = "";
-if(!empty($fecha_inicio)){ $params_busqueda .= "&fecha_inicio=$fecha_inicio"; }
-if(!empty($fecha_fin)){ $params_busqueda .= "&fecha_fin=$fecha_fin"; }
+if(!empty($fecha_inicio_raw)){ $params_busqueda .= "&fecha_inicio=" . urlencode($fecha_inicio_raw); }
+if(!empty($fecha_fin_raw)){ $params_busqueda .= "&fecha_fin=" . urlencode($fecha_fin_raw); }
 ?>
 
 <style>
@@ -135,11 +138,11 @@ if(!empty($fecha_fin)){ $params_busqueda .= "&fecha_fin=$fecha_fin"; }
                 <div class="row g-3">
                     <div class="col-md-4">
                         <label class="form-label fw-semibold small text-secondary">Fecha Inicio</label>
-                        <input type="date" name="fecha_inicio" class="form-control form-control-custom" value="<?php echo $fecha_inicio; ?>">
+                        <input type="date" name="fecha_inicio" class="form-control form-control-custom" value="<?php echo htmlspecialchars($fecha_inicio_raw); ?>">
                     </div>
                     <div class="col-md-4">
                         <label class="form-label fw-semibold small text-secondary">Fecha Fin</label>
-                        <input type="date" name="fecha_fin" class="form-control form-control-custom" value="<?php echo $fecha_fin; ?>">
+                        <input type="date" name="fecha_fin" class="form-control form-control-custom" value="<?php echo htmlspecialchars($fecha_fin_raw); ?>">
                     </div>
                     <div class="col-md-4 d-flex align-items-end gap-2">
                         <button type="submit" class="btn btn-amatista-primary rounded-pill px-4 w-100 py-2 shadow-sm">
@@ -172,7 +175,7 @@ if(!empty($fecha_fin)){ $params_busqueda .= "&fecha_fin=$fecha_fin"; }
                             <tr class="border-bottom">
                                 <td class="ps-4"><span class="badge-id">#<?php echo $v['id']; ?></span></td>
                                 <td class="text-secondary small"><i class="bi bi-calendar3 me-2"></i><?php echo date("d/m/Y H:i", strtotime($v['fecha'])); ?></td>
-                                <td class="fw-semibold text-dark"><?php echo $v['cliente']; ?></td>
+                                <td class="fw-semibold text-dark"><?php echo htmlspecialchars($v['cliente']); ?></td>
                                 <td class="fw-bold" style="color: var(--accent-success);">$<?php echo number_format($v['total'], 0, ',', '.'); ?></td>
                                 <td class="text-center">
                                     <div class="btn-group shadow-sm rounded-3 overflow-hidden">

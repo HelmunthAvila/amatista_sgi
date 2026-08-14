@@ -1,4 +1,5 @@
 <?php
+include("../../includes/sesion.php");
 // 1. Conexión a la base de datos
 include("../../conexion.php");
 
@@ -60,8 +61,8 @@ if(!$detalle){
     <div class="divider"></div>
 
     <div class="cliente">
-        <p><strong>Cliente:</strong> <?php echo $venta['cliente']; ?></p>
-        <p><strong>Tel:</strong> <?php echo $venta['telefono'] ? $venta['telefono'] : 'N/A'; ?></p>
+        <p><strong>Cliente:</strong> <?php echo htmlspecialchars($venta['cliente']); ?></p>
+        <p><strong>Tel:</strong> <?php echo htmlspecialchars($venta['telefono'] ? $venta['telefono'] : 'N/A'); ?></p>
     </div>
 
     <div class="divider"></div>
@@ -82,7 +83,7 @@ if(!$detalle){
                 $total_acumulado += $subtotal_item;
             ?>
             <tr>
-                <td style="padding-top: 5px;"><?php echo $d['nombre']; ?></td>
+                <td style="padding-top: 5px;"><?php echo htmlspecialchars($d['nombre']); ?></td>
                 <td align="center">x<?php echo $d['cantidad']; ?></td>
                 <td align="right">$<?php echo number_format($subtotal_item); ?></td>
             </tr>
