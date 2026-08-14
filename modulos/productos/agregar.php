@@ -80,6 +80,8 @@ include("../../includes/header.php");
 
                 <!-- Formulario que envía los datos al archivo guardar.php -->
                 <form action="guardar.php" method="POST">
+    <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+
                     
                     <div class="row g-3">
 

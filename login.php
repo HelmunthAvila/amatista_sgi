@@ -2,31 +2,49 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-session_start();
+require_once("includes/iniciar_sesion.php");
 include("conexion.php");
 
 $error = ""; 
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $usuario = mysqli_real_escape_string($conexion, $_POST['usuario']);
-    $pass = $_POST['password'];
-
-    $sql = "SELECT * FROM usuarios WHERE usuario = '$usuario' AND estado = 1";
-    $res = mysqli_query($conexion, $sql);
-
-    if ($u = mysqli_fetch_assoc($res)) {
-        if (password_verify($pass, $u['password']) || md5($pass) == $u['password']) {
-            $_SESSION['id_usuario'] = $u['id'];
-            $_SESSION['nombre_usuario'] = $u['nombre'];
-            $_SESSION['rol'] = $u['rol'];
-
-            header("Location: dashboard.php");
-            exit; 
-        } else {
-            $error = "Contraseña incorrecta";
-        }
+    if (!csrf_verificar()) {
+        $error = "La sesión expiró. Recarga la página e inténtalo de nuevo.";
     } else {
-        $error = "Usuario no encontrado o inactivo";
+        $usuario = mysqli_real_escape_string($conexion, $_POST['usuario']);
+        $pass = $_POST['password'];
+
+        $sql = "SELECT * FROM usuarios WHERE usuario = '$usuario' AND estado = 1";
+        $res = mysqli_query($conexion, $sql);
+
+        if ($u = mysqli_fetch_assoc($res)) {
+            $password_valida = false;
+
+            if (password_verify($pass, $u['password'])) {
+                $password_valida = true;
+            } elseif (md5($pass) == $u['password']) {
+                // Hash MD5 legado: migra automáticamente a bcrypt en el primer inicio de sesión (AM-004)
+                $password_valida = true;
+                $nuevo_hash = password_hash($pass, PASSWORD_DEFAULT);
+                $nuevo_hash_escapado = mysqli_real_escape_string($conexion, $nuevo_hash);
+                mysqli_query($conexion, "UPDATE usuarios SET password = '$nuevo_hash_escapado' WHERE id = " . intval($u['id']));
+            }
+
+            if ($password_valida) {
+                session_regenerate_id(true); // Previene fijación de sesión (AM-007)
+
+                $_SESSION['id_usuario'] = $u['id'];
+                $_SESSION['nombre_usuario'] = $u['nombre'];
+                $_SESSION['rol'] = $u['rol'];
+
+                header("Location: dashboard.php");
+                exit; 
+            } else {
+                $error = "Contraseña incorrecta";
+            }
+        } else {
+            $error = "Usuario no encontrado o inactivo";
+        }
     }
 }
 ?>
@@ -349,6 +367,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <?php endif; ?>
 
             <form action="login.php" method="POST">
+                <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
                 <div class="form-group">
                     <label for="usuario">Usuario</label>
                     <div class="input-wrap">

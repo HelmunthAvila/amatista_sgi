@@ -91,6 +91,8 @@ $p = mysqli_fetch_array($query);
 
                 <!-- Formulario que enviará los cambios al archivo actualizar.php -->
                 <form action="actualizar.php" method="POST">
+    <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+
 
                     <!-- Campo oculto que envía el ID del producto -->
                     <input type="hidden" name="id" value="<?= $p['id'] ?>">

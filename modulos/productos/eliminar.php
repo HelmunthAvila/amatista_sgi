@@ -4,12 +4,19 @@ include("../../includes/sesion.php");
 
 // Incluye el archivo de conexión a la base de datos
 include("../../conexion.php");
+// Verificación CSRF (AM-008)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && !csrf_verificar()) {
+    $_SESSION['alerta'] = ['tipo' => 'danger', 'mensaje' => 'La sesión expiró. Recarga la página e intenta nuevamente.'];
+    header("Location: listar.php");
+    exit();
+}
+
 
 // Verifica que se haya recibido el ID del producto por la URL
-if (isset($_GET['id'])) {
+if (isset($_POST['id'])) {
 
     // Limpia el ID recibido para evitar inyección SQL
-    $id = mysqli_real_escape_string($conexion, $_GET['id']);
+    $id = mysqli_real_escape_string($conexion, $_POST['id']);
 
     // Consultamos el nombre antes de eliminarlo para el mensaje informativo personalizado
     $buscar_producto = mysqli_query($conexion, "SELECT nombre FROM productos WHERE id = $id");

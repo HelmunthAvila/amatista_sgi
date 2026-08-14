@@ -54,6 +54,8 @@ include("../../includes/header.php");
         <div class="col-xl-5 col-lg-7">
             <div class="card card-custom shadow-sm p-4">
                 <form action="guardar.php" method="POST">
+    <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+
                     
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-secondary text-uppercase">Nombre Completo</label>

@@ -185,9 +185,13 @@ if(!empty($fecha_fin_raw)){ $params_busqueda .= "&fecha_fin=" . urlencode($fecha
                                         <a href="ticket.php?id=<?php echo $v['id']; ?>" target="_blank" class="btn btn-sm btn-white bg-white border-end" title="Imprimir Ticket">
                                             <i class="bi bi-printer text-secondary fs-6"></i>
                                         </a>
-                                        <a href="eliminar.php?id=<?php echo $v['id']; ?>" class="btn btn-sm btn-white bg-white" onclick="return confirm('¿Está seguro de que desea anular la venta #<?php echo $v['id']; ?> y regresar los productos al inventario?')" title="Anular Venta">
-                                            <i class="bi bi-trash3 text-danger fs-6"></i>
-                                        </a>
+                                        <form method="POST" action="eliminar.php" class="d-inline" onsubmit="return confirm('¿Está seguro?')">
+                                            <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+                                            <input type="hidden" name="id" value="<?php echo $v['id']; ?>">
+                                            <button type="submit" class="btn btn-sm btn-white bg-white" title="Anular Venta">
+                                                <i class="bi bi-trash3 text-danger fs-6"></i>
+                                            </button>
+                                        </form>
                                     </div>
                                 </td>
                             </tr>

@@ -62,6 +62,8 @@ include("../../includes/header.php");
                 </h5>
 
                 <form action="guardar.php" method="POST">
+    <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+
 
                     <div class="mb-3">
                         <label class="form-label small fw-semibold text-secondary text-uppercase">Empresa / Fábrica</label>

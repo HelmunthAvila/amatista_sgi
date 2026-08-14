@@ -1,13 +1,21 @@
 <?php
 include("../../includes/sesion.php");
+requiere_rol('admin');
 // 1. Incluimos la conexión a la base de datos usando la ruta correcta
 include("../../conexion.php");
+// Verificación CSRF (AM-008)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && !csrf_verificar()) {
+    $_SESSION['alerta'] = ['tipo' => 'danger', 'mensaje' => 'La sesión expiró. Recarga la página e intenta nuevamente.'];
+    header("Location: listar.php");
+    exit();
+}
+
 
 // 2. Validamos que el ID haya sido enviado por la URL y que no esté vacío
-if (isset($_GET['id']) && !empty($_GET['id'])) {
+if (isset($_POST['id']) && !empty($_POST['id'])) {
     
     // Escapamos el ID por seguridad contra inyecciones SQL simples
-    $id_usuario = mysqli_real_escape_string($conexion, $_GET['id']);
+    $id_usuario = mysqli_real_escape_string($conexion, $_POST['id']);
     
     // 3. Ejecutamos la sentencia de eliminación
     $query = "DELETE FROM usuarios WHERE id = '$id_usuario'";

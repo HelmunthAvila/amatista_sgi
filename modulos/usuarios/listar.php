@@ -1,5 +1,6 @@
 <?php
 include("../../includes/sesion.php");
+requiere_rol('admin');
 
 // 1. Incluir conexión a la base de datos
 include("../../conexion.php");
@@ -205,10 +206,13 @@ $usuarios = mysqli_query($conexion, "SELECT * FROM usuarios ORDER BY nombre ASC"
                                 <i class="bi bi-pencil-square text-primary"></i>
 
                                 </a>
-                                <a href="eliminar.php?id=<?php echo $u['id']; ?>" class="btn btn-sm btn-white" 
-                                   onclick="return confirm('¿Eliminar acceso de este usuario?')" title="Eliminar">
-                                    <i class="bi bi-trash text-danger"></i>
-                                </a>
+                                <form method="POST" action="eliminar.php" class="d-inline" onsubmit="return confirm('¿Eliminar acceso de este usuario?')">
+                                    <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+                                    <input type="hidden" name="id" value="<?php echo $u['id']; ?>">
+                                    <button type="submit" class="btn btn-sm btn-white bg-white" title="Eliminar">
+                                        <i class="bi bi-trash text-danger"></i>
+                                    </button>
+                                </form>
 
                             </div>
 

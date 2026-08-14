@@ -2,6 +2,13 @@
 include("../../includes/sesion.php");
 
 include("../../conexion.php");
+// Verificación CSRF (AM-008)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && !csrf_verificar()) {
+    $_SESSION['alerta'] = ['tipo' => 'danger', 'mensaje' => 'La sesión expiró. Recarga la página e intenta nuevamente.'];
+    header("Location: pos.php");
+    exit();
+}
+
 
 if(!isset($_POST['producto_id']) || !isset($_POST['cantidad'])){
     $_SESSION['alerta'] = ['tipo' => 'danger', 'mensaje' => 'Parámetros del formulario incompletos.'];

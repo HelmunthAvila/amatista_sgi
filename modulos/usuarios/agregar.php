@@ -1,5 +1,6 @@
 <?php
 include("../../includes/sesion.php");
+requiere_rol('admin');
 
 // 1. Conexión a la base de datos
 include("../../conexion.php");
@@ -28,6 +29,8 @@ include("../../includes/header.php");
 
                 <!-- Formulario que envía los datos al archivo guardar.php -->
                 <form action="guardar.php" method="POST">
+    <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+
 
                     <!-- CAMPO: NOMBRE COMPLETO -->
                     <div class="mb-3">

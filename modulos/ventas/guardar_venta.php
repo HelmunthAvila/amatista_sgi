@@ -2,6 +2,13 @@
 include("../../includes/sesion.php");
 
 include("../../conexion.php");
+// Verificación CSRF (AM-008)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && !csrf_verificar()) {
+    $_SESSION['alerta'] = ['tipo' => 'danger', 'mensaje' => 'La sesión expiró. Recarga la página e intenta nuevamente.'];
+    header("Location: pos.php");
+    exit();
+}
+
 
 if(!isset($_SESSION['carrito']) || empty($_SESSION['carrito'])){
     $_SESSION['alerta'] = ['tipo' => 'danger', 'mensaje' => 'Operación cancelada. El carrito de compras se encuentra vacío.'];

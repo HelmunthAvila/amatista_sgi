@@ -1,15 +1,23 @@
 <?php
 include("../../includes/sesion.php");
+requiere_rol('admin');
 
 include("../../conexion.php");
+// Verificación CSRF (AM-008)
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && !csrf_verificar()) {
+    $_SESSION['alerta'] = ['tipo' => 'danger', 'mensaje' => 'La sesión expiró. Recarga la página e intenta nuevamente.'];
+    header("Location: listar.php");
+    exit();
+}
 
-if (!isset($_GET['id']) || empty($_GET['id'])) {
+
+if (!isset($_POST['id']) || empty($_POST['id'])) {
     $_SESSION['alerta'] = ['tipo' => 'danger', 'mensaje' => 'No se especificó un ID de venta válido para anular.'];
     header("Location: listar.php");
     exit();
 }
 
-$id_venta = intval($_GET['id']);
+$id_venta = intval($_POST['id']);
 mysqli_begin_transaction($conexion);
 
 try {

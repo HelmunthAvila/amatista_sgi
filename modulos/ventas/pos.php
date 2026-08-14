@@ -125,6 +125,8 @@ if(!isset($_SESSION['carrito'])){
                         <i class="bi bi-plus-circle-fill me-2"></i> Agregar al Carrito
                     </h5>
                     <form action="agregar_carrito.php" method="POST">
+    <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+
                         <div class="mb-3">
                             <label class="form-label small fw-semibold text-secondary text-uppercase">Producto / Modelo</label>
                             <select name="producto_id" class="form-select form-control-custom" required>
@@ -198,6 +200,8 @@ if(!isset($_SESSION['carrito'])){
 
                 <div class="card-footer bg-white p-4 border-top-0 mt-auto">
                     <form action="guardar_venta.php" method="POST">
+    <input type="hidden" name="csrf_token" value="<?php echo csrf_token(); ?>">
+
                         <div class="row align-items-center">
                             <div class="col-md-7">
                                 <label class="form-label small fw-semibold text-secondary text-uppercase mb-2">Asignar Cliente</label>
