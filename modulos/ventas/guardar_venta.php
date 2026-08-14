@@ -53,6 +53,18 @@ try {
         $cantidad = intval($item['cantidad']);
         $precio = floatval($item['precio']);
 
+        // Revalidación de stock al momento de la venta (AM-013): evita stock negativo
+        // si el inventario cambió después de agregar el producto al carrito.
+        $stmt_check = mysqli_prepare($conexion, "SELECT stock FROM productos WHERE id = ?");
+        mysqli_stmt_bind_param($stmt_check, "i", $id_producto);
+        mysqli_stmt_execute($stmt_check);
+        $fila_check = mysqli_fetch_assoc(mysqli_stmt_get_result($stmt_check));
+        mysqli_stmt_close($stmt_check);
+
+        if (!$fila_check || intval($fila_check['stock']) < $cantidad) {
+            throw new Exception("Stock insuficiente para el producto ID: $id_producto");
+        }
+
         $stmt_detalle = mysqli_prepare($conexion, "INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario) VALUES (?, ?, ?, ?)");
         mysqli_stmt_bind_param($stmt_detalle, "iiid", $id_venta, $id_producto, $cantidad, $precio);
         $ok_detalle = mysqli_stmt_execute($stmt_detalle);

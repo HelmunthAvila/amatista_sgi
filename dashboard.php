@@ -40,22 +40,54 @@ $top_vendidos = mysqli_query($conexion, "
     LIMIT 5
 ");
 
-/* --- PROCESAMIENTO DE DATOS PARA EL GRÁFICO (Simulación con posibilidad de queries reales) --- */
-// Nota: Puedes reemplazar estos arreglos estáticos por consultas SQL con GROUP BY si lo requieres a futuro.
-$datos_semanal = [
-    'labels' => ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'],
-    'data'   => [450000, 320000, 580000, 490000, 850000, 1200000, 950000]
-];
+/* --- PROCESAMIENTO DE DATOS PARA EL GRÁFICO (Consultas reales a BD, AM-015) --- */
 
-$datos_mensual = [
-    'labels' => ['Sem 1', 'Sem 2', 'Sem 3', 'Sem 4'],
-    'data'   => [3500000, 4200000, 3800000, 5100000]
-];
+// Semanal: ventas por día de la semana actual (Lun a Dom)
+$datos_semanal = ['labels' => ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'], 'data' => array_fill(0, 7, 0)];
+$res_semanal = mysqli_query($conexion, "SELECT DAYOFWEEK(fecha) as dia, SUM(total) as total 
+    FROM ventas WHERE YEARWEEK(fecha, 1) = YEARWEEK(CURDATE(), 1) GROUP BY DAYOFWEEK(fecha)");
+if ($res_semanal) {
+    while ($f = mysqli_fetch_assoc($res_semanal)) {
+        // DAYOFWEEK de MySQL: 1=Dom ... 7=Sáb -> índice 0=Lun ... 6=Dom
+        $idx = ((int)$f['dia'] + 5) % 7;
+        $datos_semanal['data'][$idx] = (float)$f['total'];
+    }
+}
 
+// Mensual: ventas por semana del mes actual (Sem 1 .. Sem N)
+$dias_mes_actual = (int)date('t');
+$num_semanas = (int)ceil($dias_mes_actual / 7);
+$datos_mensual = ['labels' => [], 'data' => []];
+for ($s = 1; $s <= $num_semanas; $s++) {
+    $datos_mensual['labels'][] = 'Sem ' . $s;
+    $datos_mensual['data'][] = 0;
+}
+$res_mensual = mysqli_query($conexion, "SELECT CEIL(DAY(fecha)/7) as semana, SUM(total) as total 
+    FROM ventas WHERE MONTH(fecha) = MONTH(CURDATE()) AND YEAR(fecha) = YEAR(CURDATE()) GROUP BY CEIL(DAY(fecha)/7)");
+if ($res_mensual) {
+    while ($f = mysqli_fetch_assoc($res_mensual)) {
+        $idx = (int)$f['semana'] - 1;
+        if ($idx >= 0 && $idx < $num_semanas) {
+            $datos_mensual['data'][$idx] = (float)$f['total'];
+        }
+    }
+}
+
+// Anual: ventas por mes del año en curso (Ene-Dic)
 $datos_anual = [
     'labels' => ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
-    'data'   => [15000000, 18200000, 14500000, 19000000, 22000000, 0, 0, 0, 0, 0, 0, 0] // 2026 en curso
+    'data'   => array_fill(0, 12, 0)
 ];
+$res_anual = mysqli_query($conexion, "SELECT MONTH(fecha) as mes, SUM(total) as total 
+    FROM ventas WHERE YEAR(fecha) = YEAR(CURDATE()) GROUP BY MONTH(fecha)");
+if ($res_anual) {
+    while ($f = mysqli_fetch_assoc($res_anual)) {
+        $idx = (int)$f['mes'] - 1;
+        if ($idx >= 0 && $idx < 12) {
+            $datos_anual['data'][$idx] = (float)$f['total'];
+        }
+    }
+}
 ?>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
