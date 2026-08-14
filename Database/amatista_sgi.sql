@@ -159,9 +159,14 @@ CREATE TABLE `usuarios` (
   `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `rol` enum('admin','cajero') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
   `estado` tinyint DEFAULT '1',
+  `eliminado_por` int DEFAULT NULL,
+  `eliminado_en` datetime DEFAULT NULL,
+  `motivo_eliminacion` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
   `fecha_registro` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
-  UNIQUE KEY `usuario` (`usuario`)
+  UNIQUE KEY `usuario` (`usuario`),
+  KEY `fk_usuarios_eliminado_por` (`eliminado_por`),
+  CONSTRAINT `fk_usuarios_eliminado_por` FOREIGN KEY (`eliminado_por`) REFERENCES `usuarios` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -171,7 +176,7 @@ CREATE TABLE `usuarios` (
 
 LOCK TABLES `usuarios` WRITE;
 /*!40000 ALTER TABLE `usuarios` DISABLE KEYS */;
-INSERT INTO `usuarios` VALUES (1,'Helmunth Avila','helmunth','$2y$10$is6mecs4u3bWeB2TfwkI0.wC3XGmYSkpMAEKPiTwKsNZpXKxV2ORi','admin',1,'2026-03-10 09:52:23'),(2,'Maria Gonzalez','Maju','$2y$10$YlotUe6lajo7ojU5QQmsTOaDhPPFI1jeEOA0xACYSs7tsZobIiW6u','cajero',1,'2026-03-10 09:52:23'),(3,'Carlos Perez','Paola','$2y$10$is6mecs4u3bWeB2TfwkI0.wC3XGmYSkpMAEKPiTwKsNZpXKxV2ORi','cajero',1,'2026-03-10 09:52:23');
+INSERT INTO `usuarios` VALUES (1,'Helmunth Avila','helmunth','$2y$10$is6mecs4u3bWeB2TfwkI0.wC3XGmYSkpMAEKPiTwKsNZpXKxV2ORi','admin',1,NULL,NULL,NULL,'2026-03-10 09:52:23'),(2,'Maria Gonzalez','Maju','$2y$10$YlotUe6lajo7ojU5QQmsTOaDhPPFI1jeEOA0xACYSs7tsZobIiW6u','cajero',1,NULL,NULL,NULL,'2026-03-10 09:52:23'),(3,'Carlos Perez','Paola','$2y$10$is6mecs4u3bWeB2TfwkI0.wC3XGmYSkpMAEKPiTwKsNZpXKxV2ORi','cajero',1,NULL,NULL,NULL,'2026-03-10 09:52:23');
 /*!40000 ALTER TABLE `usuarios` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -218,4 +223,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2026-08-14 15:41:44
+-- Dump completed on 2026-08-14 17:55:27
