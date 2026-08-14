@@ -13,6 +13,7 @@ if (isset($_SESSION['rol']) && $_SESSION['rol'] !== 'admin') {
 }
 
 require_once("conexion.php");
+require_once("includes/configuracion.php");
 include("includes/header.php");
 
 /* --- LÓGICA DE DATOS --- */
@@ -28,7 +29,8 @@ $productos  = obtenerDato($conexion, "SELECT COUNT(*) as total FROM productos WH
 $clientes   = obtenerDato($conexion, "SELECT COUNT(*) as total FROM clientes WHERE estado = 1");
 
 // Stock Crítico
-$stock_bajo = mysqli_query($conexion, "SELECT nombre, marca, talla, stock FROM productos WHERE stock <= 5 AND estado = 1 ORDER BY stock ASC LIMIT 5");
+$stock_minimo = obtener_stock_minimo($conexion);
+$stock_bajo = mysqli_query($conexion, "SELECT nombre, marca, talla, stock FROM productos WHERE stock <= " . $stock_minimo . " AND estado = 1 ORDER BY stock ASC LIMIT 5");
 
 // Top vendidos
 $top_vendidos = mysqli_query($conexion, "

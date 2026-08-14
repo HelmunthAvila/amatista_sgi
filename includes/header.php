@@ -182,6 +182,11 @@ $es_admin = isset($_SESSION['rol']) && $_SESSION['rol'] === 'admin';
                 <i class="bi bi-truck me-3"></i> Proveedores
             </a>
 
+            <!-- Configuración -->
+            <a href="<?= $base ?>modulos/configuracion/index.php" class="nav-link <?= (strpos($archivo_actual, 'configuracion/') !== false) ? 'active' : '' ?>">
+                <i class="bi bi-gear me-3"></i> Configuración
+            </a>
+
             <div class="menu-category">Análisis</div>
 
             <!-- Reportes -->

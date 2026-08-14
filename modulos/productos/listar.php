@@ -5,6 +5,7 @@ requiere_rol('admin');
 
 // Incluye la conexión a la base de datos y el encabezado general del sistema
 include("../../conexion.php");
+include("../../includes/configuracion.php");
 include("../../includes/header.php");
 
 // 1. Configurar la cantidad de registros por página
@@ -20,6 +21,7 @@ $offset = ($pagina_actual - 1) * $por_pagina;
 // Captura los filtros enviados por la URL (GET)
 $busqueda = $_GET['busqueda'] ?? '';
 $filtro_stock = $_GET['filtro_stock'] ?? '';
+$stock_minimo = obtener_stock_minimo($conexion);
 
 
 // --- CONSULTA PARA CONTAR EL TOTAL DE REGISTROS (Necesario para la paginación) ---
@@ -34,9 +36,9 @@ if (!empty($busqueda)) {
 }
 
 if ($filtro_stock === 'bajo') {
-    $query_conteo .= " AND stock <= 5";
+    $query_conteo .= " AND stock <= " . $stock_minimo;
 } elseif ($filtro_stock === 'disponible') {
-    $query_conteo .= " AND stock > 5";
+    $query_conteo .= " AND stock > " . $stock_minimo;
 }
 
 // Ejecuta el conteo con consulta preparada (AM-005)
@@ -62,9 +64,9 @@ if (!empty($busqueda)) {
 }
 
 if ($filtro_stock === 'bajo') {
-    $query .= " AND stock <= 5";
+    $query .= " AND stock <= " . $stock_minimo;
 } elseif ($filtro_stock === 'disponible') {
-    $query .= " AND stock > 5";
+    $query .= " AND stock > " . $stock_minimo;
 }
 
 // Ordena los productos alfabéticamente por nombre con los límites de paginación

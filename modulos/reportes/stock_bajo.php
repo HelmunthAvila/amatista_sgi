@@ -5,6 +5,7 @@ requiere_rol('admin');
 
 // 1. Incluir conexión a la base de datos
 include("../../conexion.php");
+include("../../includes/configuracion.php");
 
 // 2. Incluir encabezado del sistema (menú, estilos y estructura)
 include("../../includes/header.php");
@@ -16,14 +17,16 @@ if ($pagina_actual < 1) { $pagina_actual = 1; }
 $offset = ($pagina_actual - 1) * $por_pagina;
 
 // --- CONSULTA PARA CONTAR TOTAL DE REGISTROS BAJOS ---
-$query_conteo = "SELECT COUNT(*) as total FROM productos WHERE stock <= 5";
+$stock_minimo = obtener_stock_minimo($conexion);
+
+$query_conteo = "SELECT COUNT(*) as total FROM productos WHERE stock <= " . $stock_minimo;
 $res_conteo = mysqli_query($conexion, $query_conteo);
 $fila_conteo = mysqli_fetch_assoc($res_conteo);
 $total_registros = $fila_conteo['total'];
 $total_paginas = ceil($total_registros / $por_pagina);
 
 // --- CONSULTA PRINCIPAL CON LÍMITES ---
-$productos = mysqli_query($conexion, "SELECT * FROM productos WHERE stock <= 5 AND estado = 1 ORDER BY stock ASC LIMIT $por_pagina OFFSET $offset");
+$productos = mysqli_query($conexion, "SELECT * FROM productos WHERE stock <= " . $stock_minimo . " AND estado = 1 ORDER BY stock ASC LIMIT $por_pagina OFFSET $offset");
 
 if (!$productos) {
     die("Error al consultar la información. Inténtalo de nuevo.");
