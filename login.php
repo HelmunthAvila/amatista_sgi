@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Amatista SGI</title>
+    <title>Iniciar Sesión - Amatista SGI</title>
     <!-- Iconos Bootstrap (misma fuente que el resto del sistema) -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <style>
@@ -299,11 +299,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
 
             <div class="brand-hero">
-                <h1 class="brand-title">Todo tu negocio de calzado en un solo sistema</h1>
+                <h1 class="brand-title">Tu negocio, en un solo sistema</h1>
                 <p class="brand-subtitle">
-                    Amatista SGI es el sistema de información de Amatista Zapatería:
-                    controla tu inventario, registra ventas y administra tu red comercial
-                    de forma ágil, segura y profesional.
+                    Sistema de inventario, ventas y administración para Amatista Zapatería:
+                    ágil, seguro y profesional.
                 </p>
 
                 <ul class="features">
@@ -311,49 +310,49 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         <span class="icon-box"><i class="bi bi-calculator"></i></span>
                         <span>
                             <strong>Punto de Venta (POS)</strong>
-                            <span>Registra ventas y genera tickets al instante.</span>
+                            <span>Ventas y tickets al instante.</span>
                         </span>
                     </li>
                     <li>
                         <span class="icon-box"><i class="bi bi-box-seam"></i></span>
                         <span>
                             <strong>Inventario</strong>
-                            <span>Controla stock, tallas y precios en tiempo real.</span>
+                            <span>Stock, tallas y precios en tiempo real.</span>
                         </span>
                     </li>
                     <li>
                         <span class="icon-box"><i class="bi bi-people"></i></span>
                         <span>
                             <strong>Clientes</strong>
-                            <span>Gestiona tu directorio de clientes.</span>
+                            <span>Directorio de clientes.</span>
                         </span>
                     </li>
                     <li>
                         <span class="icon-box"><i class="bi bi-truck"></i></span>
                         <span>
                             <strong>Proveedores</strong>
-                            <span>Administra tus canales de suministro.</span>
+                            <span>Canales de suministro.</span>
                         </span>
                     </li>
                     <li>
                         <span class="icon-box"><i class="bi bi-file-earmark-bar-graph"></i></span>
                         <span>
                             <strong>Reportes</strong>
-                            <span>Analiza ventas, stock bajo y exporta a Excel.</span>
+                            <span>Ventas, stock bajo y exportación a Excel.</span>
                         </span>
                     </li>
                     <li>
                         <span class="icon-box"><i class="bi bi-shield-lock"></i></span>
                         <span>
                             <strong>Acceso Seguro</strong>
-                            <span>Usuarios con roles y contraseñas protegidas.</span>
+                            <span>Usuarios y contraseñas protegidas.</span>
                         </span>
                     </li>
                 </ul>
             </div>
 
             <div class="brand-footer">
-                © 2026 Amatista SGI · Sistema de Gestión de Inventario y Ventas
+                © 2026 Amatista SGI · Gestión de Inventario y Ventas
             </div>
         </aside>
 
@@ -361,7 +360,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <main class="form-side">
             <div class="form-heading">
                 <h2>Iniciar Sesión</h2>
-                <p>Accede a tu cuenta con tus credenciales</p>
+                <p>Accede con tus credenciales</p>
             </div>
 
             <?php if (!empty($error)): ?>
@@ -390,12 +389,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
 
                 <button type="submit" class="btn-submit">
-                    Ingresar al Sistema <i class="bi bi-box-arrow-in-right"></i>
+                    Ingresar <i class="bi bi-box-arrow-in-right"></i>
                 </button>
             </form>
 
             <p class="form-foot">
-                ¿Problemas para acceder? Contacta al administrador del sistema.
+                ¿Problemas? Contacta al administrador.
             </p>
         </main>
 

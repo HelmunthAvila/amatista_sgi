@@ -153,7 +153,7 @@ $es_admin = isset($_SESSION['rol']) && $_SESSION['rol'] === 'admin';
             <?php if ($es_admin): ?>
             <!-- Dashboard -->
             <a href="<?= $base ?>dashboard.php" class="nav-link <?= (basename($archivo_actual) == 'dashboard.php') ? 'active' : '' ?>">
-                <i class="bi bi-grid-1x2 me-3"></i> Dashboard
+                <i class="bi bi-grid-1x2 me-3"></i> Inicio
             </a>
             <?php endif; ?>
 
